@@ -40,51 +40,30 @@ const Login = () => {
     }
 
     try {
-      // Simulasi delay untuk loading
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Hit backend API untuk login
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password
+        })
+      });
 
-      // Ambil data user dari localStorage - DATA TERBARU
-      const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      // Cari user berdasarkan username atau email - PASTIKAN MENGAMBIL DATA TERUPDATE
-      const user = storedUsers.find(user => 
-        user.username === formData.username || 
-        user.email === formData.username
-      );
+      const result = await response.json();
 
-      // Validasi user
-      if (!user) {
-        setError('Username/Email tidak ditemukan');
+      if (!response.ok || !result.success) {
+        setError(result.message || 'Login gagal');
         setIsLoading(false);
         return;
       }
 
-      // Validasi password - Gunakan password yang sudah diupdate
-      if (user.password !== formData.password) {
-        setError('Password salah');
-        setIsLoading(false);
-        return;
-      }
+      // Simpan data user yang login ke localStorage
+      const userData = result.data;
 
-      // Simpan data user yang login ke localStorage - PAKAI DATA USER TERBARU
-      const userData = {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar || "/asset/profile.png",
-        level: user.level || 1,
-        joinDate: user.joinDate || new Date().toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        }),
-        birthday: user.birthday || "01-Jan-2000",
-        gender: user.gender || "Female",
-        // Tambahkan field lainnya yang mungkin sudah diupdate
-        ...user // Spread semua properti dari user untuk memastikan semua data terambil
-      };
-
-      // Simpan ke localStorage - OVERWRITE data lama dengan data terbaru
+      // Simpan ke localStorage
       localStorage.setItem('authToken', 'dummy-token-' + Date.now());
       localStorage.setItem('userData', JSON.stringify(userData));
       localStorage.setItem('currentUser', JSON.stringify(userData));
@@ -99,8 +78,8 @@ const Login = () => {
       });
 
       // Tampilkan success message
-      setSuccess(`Login berhasil! Selamat datang ${user.username}`);
-      
+      setSuccess(`Login berhasil! Selamat datang ${userData.username}`);
+
       // Kirim custom event untuk memberi tahu komponen lain
       window.dispatchEvent(new Event('userLoggedIn'));
 
