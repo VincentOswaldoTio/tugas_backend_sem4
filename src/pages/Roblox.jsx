@@ -118,7 +118,9 @@ const Roblox = () => {
   return (
     <main className="game-main">
       {notification && (<Notification key={notification.id} msg={notification.msg} />)}
-      <div className="game-bg" style={{ backgroundImage: "url('/asset/logo_game/roblox_bg.png')" }}></div>
+      <div className="game-bg" style={{ backgroundImage: "url('/asset/logo_game/roblox_bg.png')", backgroundPosition : "50% calc(50% - 150px)",
+                                         backgroundRepeat : "no-repeat"
+      }}></div>
       <div className="game-content">
         {/* ======= INPUT ID ======== */}
         <div className="game-input-container game-id-section mt-5">
