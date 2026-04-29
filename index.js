@@ -192,6 +192,27 @@ app.put('/api/profile/:userId', async (req, res) => {
   }
 });
 
+// Endpoint untuk mengambil Poin terbaru user dari Database
+app.get('/api/points/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Cari user berdasarkan ID dan hanya ambil kolom 'points'
+    const user = await prisma.users.findUnique({
+      where: { id: userId },
+      select: { points: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User tidak ditemukan" });
+    }
+
+    res.json({ success: true, points: user.points });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Gagal menarik data poin: " + err.message });
+  }
+});
+
 // Login
 app.post('/api/login', async (req, res) => {
   try {
