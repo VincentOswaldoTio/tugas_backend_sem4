@@ -13,9 +13,109 @@ model users {
   avatar    Bytes?
   birthday  String?
   createdAt DateTime @db.Date
-  email     String
+  email     String @unique
   gender    String?
   joinDate  String?
   password  String
-  username  String
+  username  String @unique
+
+  // Tambahan untuk fitur platform Rast7
+  level     Int      @default(1)
+  points    Int      @default(0) // Untuk menampung saldo poin
+
+  // Relasi: Satu user bisa memiliki banyak riwayat transaksi
+  transactions transactions[]
+}
+
+
+// ==========================================
+// 2. GAMES & ITEMS
+// Untuk menggantikan listDiamond statis di frontend
+// ==========================================
+model games {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   // "Mobile Legends: Bang Bang"
+  slug        String   @unique // "mlbb", "roblox"
+  logoUrl     String   // "/asset/logo_game/mlbb.png"
+  bgUrl       String?  // Background banner spesifik game
+
+  // Embedded Document: Katalog harga diamond/robux/VP
+  items       TopUpItem[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Tipe data bersarang (Embedded Document) khusus MongoDB
+type TopUpItem {
+  qty             Int     // 89
+  itemName        String  // "Diamonds", "Robux", "Valorant Points"
+  originalPrice   Float   // 16000
+  discountPercent Float   @default(0) // 10
+  finalPrice      Float   // 14400
+}
+
+// ==========================================
+// 3. PAYMENT METHODS
+// Untuk menggantikan listPayment statis di frontend
+// ==========================================
+model payment_methods {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique // "Gopay", "Dana", "QRIS"
+  logoUrl     String   // "/asset/logo_payment/gopay.png"
+  taxPercent  Float    @default(11) // Pajak standar
+
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// 4. TRANSACTIONS
+// Menyimpan riwayat invoice (Struktur Snapshot)
+// ==========================================
+model transactions {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId       String   @unique // "RAST7-XXXXXXXXX"
+  
+  // Relasi ke tabel users
+  userId          String   @db.ObjectId
+  user            users    @relation(fields: [userId], references: [id])
+
+  // Data Target Top-Up (Sesuai input dari game)
+  accountId       String   // "USER ID" atau "RIOT ID"
+  zoneId          String?  // "ZONE ID" (Opsional, karena Valorant tidak butuh)
+
+  // Snapshot Pembelian (Disalin agar tidak berubah jika harga game naik)
+  gameName        String   // "Mobile Legends"
+  itemName        String   // "Diamonds"
+  itemQty         Int      // 89
+  paymentMethod   String   // "Gopay"
+
+  // Rincian Tagihan
+  basePrice       Float
+  taxAmount       Float
+  discountPoints  Int      @default(0) // Poin Rast7 yang digunakan
+  totalPaid       Float
+
+  status          String   @default("SUCCESS") // PENDING, SUCCESS, FAILED
+  waktu           String?  // Format tanggal custom frontend: "29 Apr 2026, 21:00"
+
+  createdAt       DateTime @default(now())
+}
+
+// ==========================================
+// 5. VOUCHERS
+// Untuk menggantikan hardcode "SUKSES77" di Voucher.jsx
+// ==========================================
+model vouchers {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  code        String    @unique
+  rewardValue Int       // Disesuaikan dengan data JSON (sebelumnya rewardPoint)
+  quota       Int       @default(100)
+  usedCount   Int       @default(0)   // INI YANG SEBELUMNYA HILANG
+  rewardType  String?   // Opsional, menyesuaikan JSON
+  isActive    Boolean   @default(true)
+  validUntil  DateTime? // Opsional, menyesuaikan JSON
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

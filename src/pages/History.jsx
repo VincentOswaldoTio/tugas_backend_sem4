@@ -1,17 +1,36 @@
-import React, { useContext, useState } from 'react';
-import { TransactionContext } from '../components/TransactionContext';
+import React, { useState, useEffect } from 'react';
 import '../styles/History.css';
 
 const History = () => {
-  // Ambil data transactions dari Context
-  const { transactions } = useContext(TransactionContext);
-  
-  // State untuk pencarian nomor invoice
+  const [dbTransactions, setDbTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Logika filter: Mencari invoice yang mengandung teks dari input
-  const filteredTransactions = transactions.filter(trx => 
-    trx.trxID.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const sessionData = sessionStorage.getItem('userData');
+      if (!sessionData) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const user = JSON.parse(sessionData);
+      try {
+        const response = await fetch(`/api/history/${user.id}`);
+        const result = await response.json();
+        if (result.success) setDbTransactions(result.data);
+      } catch (error) {
+        console.error("Gagal menarik riwayat:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
+
+  const filteredTransactions = dbTransactions.filter(trx => 
+    trx.invoiceId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -59,21 +78,13 @@ const History = () => {
                 filteredTransactions.map((trx, index) => (
                   <tr key={index}>
                     <td>{trx.waktu}</td>
-                    <td>{trx.trxID}</td>
-                    <td>MLBB {trx.diamond?.qty} Diamonds</td>
-                    <td>Rp {trx.totalAkhir?.toLocaleString('id-ID')}</td>
+                    <td>{trx.invoiceId}</td>
+                    <td>{trx.gameName} {trx.itemName}</td>
+                    <td>Rp {trx.totalPaid?.toLocaleString('id-ID')}</td>
                     <td><p className="stat-suc">Success</p></td>
                   </tr>
                 ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="text-center py-5 text-muted">
-                    {transactions.length === 0 
-                      ? "Belum ada riwayat transaksi." 
-                      : "Nomor Invoice tidak ditemukan."}
-                  </td>
-                </tr>
-              )}
+              ) : ""}
             </tbody>
           </table>
         </div>

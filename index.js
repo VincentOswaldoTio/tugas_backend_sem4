@@ -233,6 +233,109 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+
+// ==========================================
+// ENDPOINT TRANSAKSI & VOUCHER
+// ==========================================
+
+// 1. Simpan Transaksi Baru
+app.post('/api/transaction', async (req, res) => {
+  try {
+    const { userId, targetAccount, purchaseDetails, billing } = req.body;
+
+    // Buat invoice ID unik
+    const invoiceId = "RAST7-" + Math.random().toString(36).slice(2, 11).toUpperCase();
+    
+    // Simpan ke database
+    const newTransaction = await prisma.transactions.create({
+      data: {
+        invoiceId,
+        userId,
+        accountId: targetAccount.accountId,
+        zoneId: targetAccount.zoneId,
+        gameName: purchaseDetails.gameName,
+        itemName: purchaseDetails.itemName,
+        itemQty: purchaseDetails.itemQty,
+        paymentMethod: purchaseDetails.paymentMethod,
+        basePrice: billing.basePrice,
+        taxAmount: billing.taxAmount,
+        discountPoints: billing.pointsUsed,
+        totalPaid: billing.totalPaid,
+        waktu: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
+        status: "SUCCESS"
+      }
+    });
+
+    // Potong poin user jika digunakan
+    if (billing.pointsUsed > 0) {
+      await prisma.users.update({
+        where: { id: userId },
+        data: { points: { decrement: billing.pointsUsed } }
+      });
+    }
+
+    res.json({ success: true, message: "Transaksi berhasil disimpan", data: newTransaction });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Gagal menyimpan transaksi: " + err.message });
+  }
+});
+
+// 2. Ambil Riwayat Transaksi per User
+app.get('/api/history/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const history = await prisma.transactions.findMany({
+      where: { userId: userId },
+      orderBy: { createdAt: 'desc' } // Urutkan dari yang terbaru
+    });
+    res.json({ success: true, data: history });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Gagal mengambil riwayat" });
+  }
+});
+
+// 3. Redeem Voucher
+app.post('/api/redeem', async (req, res) => {
+  try {
+    const { userId, code } = req.body;
+
+    // Cari voucher
+    const voucher = await prisma.vouchers.findUnique({ where: { code: code.toUpperCase() } });
+
+    if (!voucher || !voucher.isActive) {
+      return res.status(400).json({ success: false, message: "Kode voucher tidak valid atau sudah tidak aktif." });
+    }
+    if (voucher.usedCount >= voucher.quota) {
+      return res.status(400).json({ success: false, message: "Kuota voucher sudah habis." });
+    }
+
+    // Tambah poin ke user & update voucher (menggunakan rewardValue)
+    await prisma.$transaction([
+      prisma.users.update({
+        where: { id: userId },
+        data: { points: { increment: voucher.rewardValue } } 
+      }),
+      prisma.vouchers.update({
+        where: { id: voucher.id },
+        data: { usedCount: { increment: 1 } }
+      })
+    ]);
+
+    // Ambil data user terbaru untuk dikembalikan ke frontend
+    const updatedUser = await prisma.users.findUnique({ where: { id: userId } });
+
+    res.json({ 
+      success: true, 
+      message: `Berhasil! +${voucher.rewardValue} Poin ditambahkan.`,
+      newPoints: updatedUser.points
+    });
+  } catch (err) {
+    // Tampilkan pesan error asli di terminal untuk mempermudah debugging
+    console.error("Error saat redeem voucher:", err); 
+    res.status(500).json({ success: false, message: "Terjadi kesalahan sistem." });
+  }
+});
+
 // Delete user
 app.delete('/api/deleteUser/:userId', async (req, res) => {
   try {

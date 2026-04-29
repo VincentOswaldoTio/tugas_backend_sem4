@@ -28,28 +28,57 @@ const Pembayaran = () => {
   const nilaiDiskon = usePoints ? Math.min(points, totalSebelumDiskon) : 0;
   const totalAkhir = totalSebelumDiskon - nilaiDiskon;
 
-  const handlePayment = () => {
-    const dataStruk = {
-    userID,
-    zoneID,
-    diamond,
-    payment,
-    nilaiDiskon,
-    totalAkhir,
-    waktu: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
-    trxID: "RAST7-" + Math.random().toString(36).slice(2, 11).toUpperCase()
-  };
-
-    if (usePoints) {
-      // Potong poin di context (menambahkan angka negatif)
-      addPoints(-nilaiDiskon);
+  const handlePayment = async () => {
+    // Ambil data user dari session
+    const sessionData = sessionStorage.getItem('userData');
+    if (!sessionData) {
+      alert("Sesi telah habis, silakan login kembali.");
+      navigate('/login');
+      return;
     }
+    const loggedInUser = JSON.parse(sessionData);
 
-    // SIMPAN data ke riwayat tepat sebelum pindah halaman
-    addTransaction(dataStruk);
+    const reqBody = {
+      userId: loggedInUser.id,
+      targetAccount: {
+        accountId: userID,
+        zoneId: zoneID || null
+      },
+      purchaseDetails: {
+        gameName: "Game TopUp", // Bisa dibuat dinamis dari state sebelumnya
+        itemName: `${diamond?.qty || "0"} Diamonds/Points`,
+        itemQty: diamond?.qty || 0,
+        paymentMethod: payment?.name || "Unknown"
+      },
+      billing: {
+        basePrice: hargaAwal,
+        taxAmount: pajak,
+        pointsUsed: usePoints ? nilaiDiskon : 0,
+        totalPaid: totalAkhir
+      }
+    };
 
-    // Kirim dataStruk ke halaman Summary
-    navigate('/summary', { state: dataStruk });
+    try {
+      const response = await fetch('/api/transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqBody)
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        // Update poin di Context jika dipakai
+        if (usePoints) addPoints(-nilaiDiskon);
+        
+        // Lempar data ke halaman Summary
+        navigate('/summary', { state: result.data });
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("Terjadi kesalahan koneksi saat memproses pembayaran.");
+    }
   };
 
   return (

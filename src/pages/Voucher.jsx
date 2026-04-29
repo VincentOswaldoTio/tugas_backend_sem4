@@ -31,25 +31,37 @@ const Voucher = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleRedeem = (e) => {
+  const handleRedeem = async (e) => {
     e.preventDefault();
+    const sessionData = sessionStorage.getItem('userData');
+    if (!sessionData) {
+      setNotif({ msg: "Silakan login terlebih dahulu.", id: Date.now() });
+      return;
+    }
+    const user = JSON.parse(sessionData);
 
-    if (inputCode === "SUKSES77" || inputCode === "GACOR88") {
-      const bonus = inputCode === "GACOR88" ? 5000 : 2500;
-      addPoints(bonus);
-
-      // Munculkan notifikasi lokal
-      setNotif({
-        msg: `Berhasil! +${bonus} Poin ditambahkan.`,
-        id: Date.now(),
+    try {
+      const response = await fetch('/api/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, code: inputCode })
       });
+      const result = await response.json();
 
-      // Beri jeda 2 detik agar user bisa baca notifikasinya sebelum pindah halaman
-      setTimeout(() => {
-        navigate("/point");
-      }, 2000);
-    } else {
-      setNotif({ msg: "Maaf, kode voucher salah.", id: Date.now() });
+      if (result.success) {
+        addPoints(result.newPoints - user.points); // Update context UI
+        
+        // Update session storage
+        user.points = result.newPoints;
+        sessionStorage.setItem('userData', JSON.stringify(user));
+
+        setNotif({ msg: result.message, id: Date.now() });
+        setTimeout(() => navigate("/point"), 2000);
+      } else {
+        setNotif({ msg: result.message, id: Date.now() });
+      }
+    } catch (error) {
+      setNotif({ msg: "Gagal terhubung ke server.", id: Date.now() });
     }
   };
 
