@@ -1,20 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/Valo.css";
 import Notification from "../components/Notification";
-
-const listDiamond = [
-    { qty: 475, price: 56000, disc: 5, discPrice: 53200 },
-    { qty: 1000, price: 120000, disc: 7, discPrice: 111600 },
-    { qty: 2050, price: 225000, disc: 9, discPrice: 204750 },
-    { qty: 3650, price: 385000, disc: 10, discPrice: 346500 },
-    { qty: 5350, price: 552500, disc: 13, discPrice: 480675 },
-    { qty: 11000, price: 1300000, disc: 11, discPrice: 1157000 },
-    { qty: 25000, price: 2690000, disc: 14, discPrice: 2313400 },
-    { qty: 52500, price: 5000000, disc: 19, discPrice: 4050000 },
-
-
-];
+import { mapGameItems, mapPaymentMethods } from "../utils/dataMapping";
 
 const DiamondCard = ({ qty, price, disc, discPrice, index, activeIndex, setActiveDiamondIndex }) => {
   return (
@@ -39,17 +27,7 @@ const DiamondCard = ({ qty, price, disc, discPrice, index, activeIndex, setActiv
   );
 };
 
-const listPayment = [
-  { name: "Gopay", imgSrc: "/asset/logo_payment/gopay.png" },
-  { name: "Dana", imgSrc: "/asset/logo_payment/dana.png" },
-  { name : "QRIS", imgSrc: "/asset/logo_payment/qris.png"},
-  { name: "Ovo", imgSrc: "/asset/logo_payment/ovo.png" },
-  { name: "Indomaret", imgSrc: "/asset/logo_payment/indomaret.png" },
-  { name: "Indosat", imgSrc: "/asset/logo_payment/indosat.png" },
-  { name : "QRIS", imgSrc: "/asset/logo_payment/qris.png"},
-  { name: "Gopay", imgSrc: "/asset/logo_payment/gopay.png" },
-  { name : "Telkomsel", imgSrc: "/asset/logo_payment/telkomsel.png" },
-]
+// listPayment will be fetched from API
 
 const PaymentCard = ({name, imgSrc, index, activeIndex, setActivePaymentIndex}) => {
   return (
@@ -69,18 +47,69 @@ const PaymentCard = ({name, imgSrc, index, activeIndex, setActivePaymentIndex}) 
 const Valorant = () => {
   const navigate = useNavigate()
   const [userID, setUserID] = useState("")
-  const [zoneID, setZoneID] = useState("")
 
   const [activeDiamondIndex, setActiveDiamondIndex] = useState(null);
   const [activePaymentIndex, setActivePaymentIndex] = useState(null);
 
   const [notification,setNotification] = useState(null)
 
+  const [listDiamond, setListDiamond] = useState([]);
+  const [listPayment, setListPayment] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const gameResponse = await fetch('/api/games/valorant');
+        const gameResult = await gameResponse.json();
+
+        if (gameResult.success) {
+          const mappedItems = mapGameItems(gameResult.data.items);
+          setListDiamond(mappedItems);
+        } else {
+          throw new Error(gameResult.message || "Gagal mengambil data game");
+        }
+
+        const paymentResponse = await fetch('/api/payment-methods');
+        const paymentResult = await paymentResponse.json();
+
+        if (paymentResult.success) {
+          const mappedPayments = mapPaymentMethods(paymentResult.data);
+          setListPayment(mappedPayments);
+        } else {
+          throw new Error(paymentResult.message || "Gagal mengambil data payment");
+        }
+
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Cleanup timeout saat component unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const data = {"userID" : userID || null,
-                "zoneID" : zoneID || null,
+                "zoneID" : null,
                 "diamond" : listDiamond[activeDiamondIndex] || null,
-                "payment" :  listPayment[activePaymentIndex] || null}
+                "payment" :  listPayment[activePaymentIndex] || null,
+                "gameName" : "Valorant",
+                "itemDisplayName" : "Valorant Points"}
 
   const handleClick = () => {
     if (userID === null || userID.trim() === "") {
@@ -90,7 +119,7 @@ const Valorant = () => {
     if (activeDiamondIndex === null) {
       setNotification({msg : "Silahkan Pilih Jumlah VP", id : Date.now()})
       return
-    } 
+    }
     if (activePaymentIndex === null){
       setNotification({msg : "Silahkan Pilih Metode Pembayaran", id : Date.now()})
       return
@@ -98,14 +127,37 @@ const Valorant = () => {
 
     setNotification({msg : "Melanjutkan ke Halaman Pembayaran...", id : Date.now()})
 
-    const loading = setTimeout(()=>{
+    timeoutRef.current = setTimeout(()=>{
       navigate('/pembayaran', {state: data})
-      clearTimeout(loading)
     }, 3000)
 
+  }
 
+  if (loading) {
+    return (
+      <main className="game-main">
+        <div className="game-content">
+          <div className="text-center p-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-3">Memuat data...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
-
+  if (error) {
+    return (
+      <main className="game-main">
+        <div className="game-content">
+          <div className="alert alert-danger m-3" role="alert">
+            {error}
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -152,12 +204,12 @@ const Valorant = () => {
           <h2 className="game-title">Pilih Pembayaran</h2>
           <div className="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 game-list-diamond">
             {listPayment.map((item, index) => (
-              <PaymentCard 
-                key={index} 
-                name={item.name} 
-                imgSrc={item.imgSrc} 
-                index={index} 
-                activeIndex={activePaymentIndex} 
+              <PaymentCard
+                key={index}
+                name={item.name}
+                imgSrc={item.imgSrc}
+                index={index}
+                activeIndex={activePaymentIndex}
                 setActivePaymentIndex={setActivePaymentIndex}/>
               ))}
 

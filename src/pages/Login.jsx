@@ -96,48 +96,84 @@ const Login = () => {
     }
   };
 
-  // Demo login untuk testing - UPDATE DEMO USER
-  const handleDemoLogin = () => {
-    const demoData = {
-      username: 'demo_user',
-      password: 'demo123'
-    };
-    
-    setFormData(demoData);
-    
-    // Simpan/update user demo ke localStorage
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    const demoUserIndex = storedUsers.findIndex(user => user.username === 'demo_user');
-    
-    if (demoUserIndex === -1) {
-      // Buat user demo baru
-      const demoUser = {
-        id: 'demo-' + Date.now(),
-        username: 'demo_user',
-        email: 'demo@example.com',
-        password: 'demo123',
-        avatar: "/asset/profile.png",
-        level: 3,
-        joinDate: new Date().toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        }),
-        birthday: "15-Mar-1995",
-        gender: "Male"
-      };
-      
-      storedUsers.push(demoUser);
-    } else {
-      // Update demo user yang sudah ada dengan data terbaru
-      storedUsers[demoUserIndex] = {
-        ...storedUsers[demoUserIndex],
-        // Pastikan password tetap sama untuk demo
-        password: 'demo123'
-      };
+  // Demo login - actually perform login
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // First try to login
+      let response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'demo_user',
+          password: 'demo123'
+        })
+      });
+
+      let result = await response.json();
+
+      // If login fails (user doesn't exist), register first
+      if (!response.ok || !result.success) {
+        const regResponse = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'demo_user',
+            email: 'demo@example.com',
+            password: 'demo123'
+          })
+        });
+
+        const regResult = await regResponse.json();
+
+        if (!regResponse.ok || !regResult.success) {
+          setError(regResult.message || 'Gagal membuat demo user');
+          setIsLoading(false);
+          return;
+        }
+
+        // Now login with demo credentials
+        response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'demo_user',
+            password: 'demo123'
+          })
+        });
+
+        result = await response.json();
+      }
+
+      if (!response.ok || !result.success) {
+        setError(result.message || 'Demo login gagal');
+        setIsLoading(false);
+        return;
+      }
+
+      // Success - set up session
+      const userData = result.data;
+      sessionStorage.setItem('authToken', 'demo-token-' + Date.now());
+      sessionStorage.setItem('userData', JSON.stringify(userData));
+      sessionStorage.setItem('currentUser', JSON.stringify(userData));
+      sessionStorage.setItem('loginTime', Date.now().toString());
+
+      window.dispatchEvent(new Event('userLoggedIn'));
+
+      setSuccessMessage(`Demo login berhasil! Selamat datang ${userData.username}`);
+
+      setTimeout(() => {
+        navigate('/profile');
+      }, 1500);
+
+    } catch (err) {
+      setError('Terjadi kesalahan saat demo login.');
+      console.error('Demo login error:', err);
+    } finally {
+      setIsLoading(false);
     }
-    
-    localStorage.setItem('users', JSON.stringify(storedUsers));
   };
 
   return (

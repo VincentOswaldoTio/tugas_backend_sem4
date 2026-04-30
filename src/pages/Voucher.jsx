@@ -14,9 +14,10 @@ const Voucher = () => {
 
   useEffect(() => {
     // 1. Munculkan notifikasi pertama segera setelah halaman dimuat
-    setNotif({ 
-      msg: "Kode redeem 2026 (2500 poin) = SUKSES77", 
-      id: Date.now() 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNotif({
+      msg: "Kode redeem 2026 (2500 poin) = SUKSES77",
+      id: Date.now()
     });
 
     // 2. Tunggu 4 detik (3 detik durasi notif 1 + 1 detik jeda) baru munculkan yang kedua

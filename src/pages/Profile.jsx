@@ -259,9 +259,10 @@ const Profile = () => {
       const updatedUser = { ...userData, ...updatedData };
       setUserData(updatedUser);
 
-      // Update sessionStorage
-      sessionStorage.setItem('userData', JSON.stringify(updatedUser));
-      sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      // Update sessionStorage (remove password before storing)
+      const { password, confirmPassword, ...userDataWithoutSensitive } = updatedUser;
+      sessionStorage.setItem('userData', JSON.stringify(userDataWithoutSensitive));
+      sessionStorage.setItem('currentUser', JSON.stringify(userDataWithoutSensitive));
 
       // Update form data
       setFormData(prev => ({

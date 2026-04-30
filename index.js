@@ -2,7 +2,6 @@ import express from 'express';
 import { prisma } from './lib/prisma';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 
 const app = express();
 app.use(express.json());
@@ -110,7 +109,7 @@ app.post('/api/register', async (req, res) => {
     });
     res.json({ success: true, message: "User berhasil dibuat", data: createUser });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server" });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server: " + err.message });
   }
 });
 
@@ -250,7 +249,7 @@ app.post('/api/login', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server" });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server: " + err.message });
   }
 });
 
@@ -264,9 +263,23 @@ app.post('/api/transaction', async (req, res) => {
   try {
     const { userId, targetAccount, purchaseDetails, billing } = req.body;
 
-    // Buat invoice ID unik
-    const invoiceId = "RAST7-" + Math.random().toString(36).slice(2, 11).toUpperCase();
-    
+    // Validasi input dasar
+    if (!userId || !targetAccount || !purchaseDetails || !billing) {
+      return res.status(400).json({ success: false, message: "Data transaksi tidak lengkap" });
+    }
+
+    // Cek user exists dan cek saldo poin
+    const user = await prisma.users.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User tidak ditemukan" });
+    }
+    if (billing.pointsUsed > user.points) {
+      return res.status(400).json({ success: false, message: "Poin tidak cukup" });
+    }
+
+    // Buat invoice ID unik (timestamp + random untuk hindari kolisi)
+    const invoiceId = `RAST7-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+
     // Simpan ke database
     const newTransaction = await prisma.transactions.create({
       data: {
@@ -295,6 +308,15 @@ app.post('/api/transaction', async (req, res) => {
       });
     }
 
+    // Tambah poin reward (1% dari total pembayaran)
+    const rewardPoints = Math.floor(billing.totalPaid * 0.01);
+    if (rewardPoints > 0) {
+      await prisma.users.update({
+        where: { id: userId },
+        data: { points: { increment: rewardPoints } }
+      });
+    }
+
     res.json({ success: true, message: "Transaksi berhasil disimpan", data: newTransaction });
   } catch (err) {
     res.status(500).json({ success: false, message: "Gagal menyimpan transaksi: " + err.message });
@@ -311,7 +333,7 @@ app.get('/api/history/:userId', async (req, res) => {
     });
     res.json({ success: true, data: history });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Gagal mengambil riwayat" });
+    res.status(500).json({ success: false, message: "Gagal mengambil riwayat: " + err.message });
   }
 });
 
@@ -366,7 +388,57 @@ app.delete('/api/deleteUser/:userId', async (req, res) => {
     });
     res.json({ success: true, message: "User berhasil dihapus", data: deletedUser });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server" });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server: " + err.message });
+  }
+});
+
+// ==========================================
+// GAMES & PAYMENT METHODS ENDPOINTS
+// ==========================================
+
+// Get all games
+app.get('/api/games', async (req, res) => {
+  try {
+    const games = await prisma.games.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logoUrl: true,
+        bgUrl: true
+      }
+    });
+    res.json({ success: true, data: games });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Get specific game by slug (includes items)
+app.get('/api/games/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const game = await prisma.games.findUnique({
+      where: { slug }
+    });
+
+    if (!game) {
+      return res.status(404).json({ success: false, message: "Game tidak ditemukan" });
+    }
+
+    res.json({ success: true, data: game });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Get all payment methods
+app.get('/api/payment-methods', async (req, res) => {
+  try {
+    const paymentMethods = await prisma.payment_methods.findMany();
+    res.json({ success: true, data: paymentMethods });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 

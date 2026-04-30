@@ -8,10 +8,18 @@ const Pembayaran = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const { userID, zoneID, diamond, payment } = location.state || {};
+  const { userID, zoneID, diamond, payment, gameName, itemDisplayName } = location.state || {};
+
+  // Ambil data user dari session
+  const sessionUser = (() => {
+    try {
+      const sessionData = sessionStorage.getItem('userData');
+      return sessionData ? JSON.parse(sessionData) : null;
+    } catch { return null; }
+  })();
 
   // Ambil poin dan fungsi addPoints dari Context
-  const { points, addPoints } = useContext(PointContext);
+  const { points, addPoints, fetchPointsFromDB } = useContext(PointContext);
 
   // AMBIL fungsi addTransaction dari context
   const { addTransaction } = useContext(TransactionContext);
@@ -45,8 +53,8 @@ const Pembayaran = () => {
         zoneId: zoneID || null
       },
       purchaseDetails: {
-        gameName: "Game TopUp", // Bisa dibuat dinamis dari state sebelumnya
-        itemName: `${diamond?.qty || "0"} Diamonds/Points`,
+        gameName: gameName || "Unknown Game",
+        itemName: `${diamond?.qty || "0"} ${itemDisplayName || "Items"}`,
         itemQty: diamond?.qty || 0,
         paymentMethod: payment?.name || "Unknown"
       },
@@ -67,11 +75,22 @@ const Pembayaran = () => {
       const result = await response.json();
 
       if (result.success) {
-        // Update poin di Context jika dipakai
-        if (usePoints) addPoints(-nilaiDiskon);
-        
+        // Refresh poin dari database (backend sudah handle update)
+        await fetchPointsFromDB(loggedInUser.id);
+
+        // Simpan data transaksi ke sessionStorage untuk fallback
+        sessionStorage.setItem('lastTransaction', JSON.stringify({
+          ...result.data,
+          nickname: sessionUser?.username || "User"
+        }));
+
         // Lempar data ke halaman Summary
-        navigate('/summary', { state: result.data });
+        navigate('/summary', {
+          state: {
+            ...result.data,
+            nickname: sessionUser?.username || "User"
+          }
+        });
       } else {
         alert(result.message);
       }
@@ -99,7 +118,7 @@ const Pembayaran = () => {
                   </div>
                   <div className="item-details">
                     {/* <h5>28 Diamonds</h5> */}
-                    <h5>{diamond?.qty || "0"} Diamonds</h5>
+                    <h5>{diamond?.qty || "0"} {itemDisplayName || "Items"}</h5>
                     <span>({diamond?.qty || "0"} + 3 Bonus)</span>
                   </div>
                 </div>
@@ -107,7 +126,7 @@ const Pembayaran = () => {
                 <ul className="list-group list-group-flush payment-details my-3">
                   <li className="list-group-item">
                     <span>Nickname:</span>
-                    <strong>Zinx.</strong>
+                    <strong>{sessionUser?.username || "User"}</strong>
                   </li>
                   <li className="list-group-item">
                     <span>ID:</span>
@@ -162,7 +181,7 @@ const Pembayaran = () => {
 
                 <div className="rewards-box">
                   <i className="bi bi-coin"></i>
-                  Anda akan mendapatkan Rewards senilai Rp. 42
+                  Anda akan mendapatkan Rewards senilai Rp. {Math.floor(totalSebelumDiskon * 0.01).toLocaleString('id-ID')}
                 </div>
 
                 <div className="total-payment">

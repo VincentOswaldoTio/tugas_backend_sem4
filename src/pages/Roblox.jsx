@@ -1,23 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/Roblox.css";
 import Notification from "../components/Notification";
+import { mapGameItems, mapPaymentMethods } from "../utils/dataMapping";
 
-const listDiamond = [
-  { qty: 3, price: 10000, disc: 5, discPrice: 9500 },
-  { qty: 50, price: 12000, disc: 7, discPrice: 10800 },
-  { qty: 73, price: 14000, disc: 9, discPrice: 12600 },
-  { qty: 89, price: 16000, disc: 10, discPrice: 14400 },
-  { qty: 110, price: 18000, disc: 13, discPrice: 16200 },
-  { qty: 330, price: 20000, disc: 11, discPrice: 18000 },
-  { qty: 490, price: 21000, disc: 14, discPrice: 23100 },
-  { qty: 1090, price: 50000, disc: 19, discPrice: 30000 },
-  { qty: 1450, price: 400000, disc: 20, discPrice: 320000 },
-  { qty: 2195, price: 600000, disc: 22, discPrice: 468000 },
-  { qty: 3688, price: 1000000, disc: 25, discPrice: 750000 },
-  { qty: 5532, price: 1500000, disc: 30, discPrice: 1050000 }
-
-];
+// listDiamond will be fetched from API
 
 const DiamondCard = ({ qty, price, disc, discPrice, index, activeIndex, setActiveDiamondIndex }) => {
   return (
@@ -42,17 +29,7 @@ const DiamondCard = ({ qty, price, disc, discPrice, index, activeIndex, setActiv
   );
 };
 
-const listPayment = [
-  { name: "Gopay", imgSrc: "/asset/logo_payment/gopay.png" },
-  { name: "Dana", imgSrc: "/asset/logo_payment/dana.png" },
-  { name : "QRIS", imgSrc: "/asset/logo_payment/qris.png"},
-  { name: "Ovo", imgSrc: "/asset/logo_payment/ovo.png" },
-  { name: "Indomaret", imgSrc: "/asset/logo_payment/indomaret.png" },
-  { name: "Indosat", imgSrc: "/asset/logo_payment/indosat.png" },
-  { name : "QRIS", imgSrc: "/asset/logo_payment/qris.png"},
-  { name: "Gopay", imgSrc: "/asset/logo_payment/gopay.png" },
-  { name : "Telkomsel", imgSrc: "/asset/logo_payment/telkomsel.png" },
-]
+// listPayment will be fetched from API
 
 const PaymentCard = ({name, imgSrc, index, activeIndex, setActivePaymentIndex}) => {
   return (
@@ -79,11 +56,52 @@ const Roblox = () => {
 
   const [notification,setNotification] = useState(null)
 
+  const [listDiamond, setListDiamond] = useState([]);
+  const [listPayment, setListPayment] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const gameResponse = await fetch('/api/games/roblox');
+        const gameResult = await gameResponse.json();
+
+        if (gameResult.success) {
+          const mappedItems = mapGameItems(gameResult.data.items);
+          setListDiamond(mappedItems);
+        } else {
+          throw new Error(gameResult.message || "Gagal mengambil data game");
+        }
+
+        const paymentResponse = await fetch('/api/payment-methods');
+        const paymentResult = await paymentResponse.json();
+
+        if (paymentResult.success) {
+          const mappedPayments = mapPaymentMethods(paymentResult.data);
+          setListPayment(mappedPayments);
+        } else {
+          throw new Error(paymentResult.message || "Gagal mengambil data payment");
+        }
+
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const data = {"userID" : userID || null,
                 "zoneID" : zoneID || null,
                 "diamond" : listDiamond[activeDiamondIndex] || null,
-                "payment" :  listPayment[activePaymentIndex] || null}
+                "payment" :  listPayment[activePaymentIndex] || null,
+                "gameName" : "Roblox",
+                "itemDisplayName" : "Robux"}
 
   const handleClick = () => {
     if (userID === null || userID.trim() === "") {
@@ -113,6 +131,33 @@ const Roblox = () => {
 
 
 
+  }
+
+  if (loading) {
+    return (
+      <main className="game-main">
+        <div className="game-content">
+          <div className="text-center p-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-3">Memuat data...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="game-main">
+        <div className="game-content">
+          <div className="alert alert-danger m-3" role="alert">
+            {error}
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (

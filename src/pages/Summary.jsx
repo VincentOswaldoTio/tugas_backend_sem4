@@ -7,7 +7,7 @@ import '../styles/Summary.css';
 const Summary = () => {
   const location = useLocation();
   // Mengambil data yang dikirim dari Pembayaran.jsx
-  const data = location.state || {};
+  const data = location.state || JSON.parse(sessionStorage.getItem('lastTransaction') || '{}');
 
   return (
     <>
@@ -35,15 +35,15 @@ const Summary = () => {
                   <ul className="list-group list-group-flush receipt-details">
                     <li className="list-group-item">
                       <span>Item:</span>
-                      <strong>{data.diamond?.qty || "0"} Diamonds</strong>
+                      <strong>{data.itemName || "-"}</strong>
                     </li>
                     <li className="list-group-item">
                       <span>Nickname:</span>
-                      <strong>Zinx.</strong>
+                      <strong>{data.nickname || "User"}</strong>
                     </li>
                     <li className="list-group-item">
                       <span>ID:</span>
-                      <strong>{data.userID || "-"}({data.zoneID || "-"})</strong>
+                      <strong>{data.accountId || "-"}({data.zoneId || "-"})</strong>
                     </li>
                   </ul>
 
@@ -55,32 +55,32 @@ const Summary = () => {
                     </li>
                     <li className="list-group-item">
                       <span>ID Transaksi:</span>
-                      <strong>{data.trxID || "-"}</strong>
+                      <strong>{data.invoiceId || "-"}</strong>
                     </li>
                     <li className="list-group-item">
                       <span>Metode:</span>
-                      <strong>{data.payment?.name || "-"}</strong>
+                      <strong>{data.paymentMethod || "-"}</strong>
                     </li>
 
                     {/* Menampilkan baris diskon hanya jika ada poin yang digunakan */}
-                    {data.nilaiDiskon > 0 && (
+                    {data.discountPoints > 0 && (
                       <li className="list-group-item bg-transparent text-success d-flex justify-content-between border-secondary">
                         <span>Potongan Poin:</span>
-                        <strong>- Rp. {data.nilaiDiskon.toLocaleString('id-ID')}</strong>
+                        <strong>- Rp. {data.discountPoints.toLocaleString('id-ID')}</strong>
                       </li>
                     )}
 
                     <li className="list-group-item payment-total">
                       <span>Total:</span>
-                      <strong className="fs-5 text-warning">Rp. {data.totalAkhir?.toLocaleString('id-ID') || "0"}</strong>
+                      <strong className="fs-5 text-warning">Rp. {data.totalPaid?.toLocaleString('id-ID') || "0"}</strong>
                     </li>
                   </ul>
                 </div>
               </div>
 
               <div className="text-center mt-4">
-                <Link to="/game/mlbb" className="btn btn-outline-info">
-                  <i className="bi bi-arrow-left-short"></i>  Kembali ke Games
+                <Link to="/" className="btn btn-outline-info">
+                  <i className="bi bi-arrow-left-short"></i>  Kembali ke Home
                 </Link>
               </div>
 
