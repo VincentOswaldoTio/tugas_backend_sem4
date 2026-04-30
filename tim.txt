@@ -1,0 +1,7 @@
+[
+  {"nama": "Anthony Louis", "nim": 241110249},
+  {"nama": "Suryanata Yaptanto", "nim": 241111143},
+  {"nama": "Vincent Oswaldo" Tio, "nim": 241110159},
+  {"nama": "Trevan Edgard", "nim": 241110265},
+  {"nama": "Richie Hujaya", "nim": 241110258},
+]
