@@ -36,6 +36,7 @@ export const PointProvider = ({ children }) => {
       if (user.id) {
         // Tarik poin dari MongoDB!
         fetchPointsFromDB(user.id);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
       }
     }
 

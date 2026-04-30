@@ -33,6 +33,19 @@ const History = () => {
     trx.invoiceId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (isLoading) {
+    return (
+      <main className='history-main'>
+        <div className="text-center p-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3">Memuat riwayat...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className='history-main'>
       <div className="history-lacak">
@@ -81,10 +94,20 @@ const History = () => {
                     <td>{trx.invoiceId}</td>
                     <td>{trx.gameName} {trx.itemName}</td>
                     <td>Rp {trx.totalPaid?.toLocaleString('id-ID')}</td>
-                    <td><p className="stat-suc">Success</p></td>
+                    <td>
+                      <span className={`status-badge ${trx.status === 'SUCCESS' ? 'status-success' : 'status-failed'}`}>
+                        {trx.status || "PENDING"}
+                      </span>
+                    </td>
                   </tr>
                 ))
-              ) : ""}
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center text-muted py-4">
+                    Tidak ada transaksi yang sesuai
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

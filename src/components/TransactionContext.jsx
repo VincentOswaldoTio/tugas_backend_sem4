@@ -4,13 +4,13 @@ export const TransactionContext = createContext();
 
 export const TransactionProvider = ({ children }) => {
   const [transactions, setTransactions] = useState(() => {
-    // Mengambil data dari localStorage agar tidak hilang saat refresh
-    const savedTrx = localStorage.getItem("rastTransactions");
+    // Mengambil data dari sessionStorage agar tidak hilang saat refresh
+    const savedTrx = sessionStorage.getItem("rastTransactions");
     return savedTrx ? JSON.parse(savedTrx) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem("rastTransactions", JSON.stringify(transactions));
+    sessionStorage.setItem("rastTransactions", JSON.stringify(transactions));
   }, [transactions]);
 
   const addTransaction = (newTrx) => {
