@@ -2,8 +2,13 @@ import express from 'express';
 import { prisma } from './lib/prisma';
 import multer from 'multer';
 import path from 'path';
+import { UserService, TransactionService } from './src/services/index.js';
 
 const app = express();
+
+// Inisialisasi service class
+const userService = new UserService(prisma);
+const transactionService = new TransactionService(prisma);
 app.use(express.json());
 
 // Setup multer dengan MEMORY STORAGE (gambar disimpan di RAM, bukan di disk)
@@ -45,26 +50,10 @@ const handleMulterError = (err, req, res, next) => {
 // GET all users (tanpa mengembalikan data binary avatar, hanya info)
 app.get('/api/users', async (req, res) => {
   try {
-    const users = await prisma.users.findMany({
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        joinDate: true,
-        birthday: true,
-        gender: true,
-        avatar: true, // ambil untuk cek null, tapi tidak dikirim mentah
-        createdAt: true
-      }
-    });
-    // Ubah avatar menjadi URL endpoint jika ada
-    const result = users.map(user => ({
-      ...user,
-      avatar: user.avatar ? `/api/avatar/${user.id}` : null
-    }));
-    res.status(200).json({ success: true, data: result });
+    const users = await userService.getAllUsers();
+    res.status(200).json({ success: true, data: users });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    userService.handleError(res, err, "Gagal mengambil data users");
   }
 });
 
@@ -72,44 +61,10 @@ app.get('/api/users', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { email, username, password } = req.body;
-
-    if (!email || !username || !password) {
-      return res.status(400).json({ success: false, message: "Email, username, dan password wajib diisi" });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, message: "Password minimal 6 karakter" });
-    }
-
-    const existingUser = await prisma.users.findFirst({
-      where: { OR: [{ email }, { username }] }
-    });
-    if (existingUser) {
-      if (existingUser.email === email) {
-        return res.status(400).json({ success: false, message: "Email sudah digunakan" });
-      }
-      if (existingUser.username === username) {
-        return res.status(400).json({ success: false, message: "Username sudah digunakan" });
-      }
-    }
-
-    const joinDate = new Date().toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-
-    const createUser = await prisma.users.create({
-      data: {
-        email,
-        username,
-        password,
-        joinDate,
-        createdAt: new Date()
-      }
-    });
-    res.json({ success: true, message: "User berhasil dibuat", data: createUser });
+    const newUser = await userService.register(email, username, password);
+    res.json({ success: true, message: "User berhasil dibuat", data: newUser });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server: " + err.message });
+    userService.errorResponse(res, err.message);
   }
 });
 
@@ -126,10 +81,7 @@ app.post('/api/upload-avatar', upload.single('avatar'), handleMulterError, async
     }
 
     // Simpan buffer gambar langsung ke field avatar (Bytes)
-    await prisma.users.update({
-      where: { id: userId },
-      data: { avatar: req.file.buffer }
-    });
+    await userService.uploadAvatar(userId, req.file.buffer);
 
     res.json({
       success: true,
@@ -137,17 +89,14 @@ app.post('/api/upload-avatar', upload.single('avatar'), handleMulterError, async
       // Frontend akan menggunakan endpoint /api/avatar/:userId untuk menampilkan gambar
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Gagal upload avatar: " + err.message });
+    userService.handleError(res, err, "Gagal upload avatar");
   }
 });
 
 // Endpoint untuk membaca avatar dari database
 app.get('/api/avatar/:userId', async (req, res) => {
   try {
-    const user = await prisma.users.findUnique({
-      where: { id: req.params.userId },
-      select: { avatar: true }
-    });
+    const user = await userService.getAvatar(req.params.userId);
 
     if (!user || !user.avatar) {
       // Kirim gambar default jika tidak ada avatar
@@ -159,7 +108,7 @@ app.get('/api/avatar/:userId', async (req, res) => {
     res.set('Content-Type', 'image/jpeg');
     res.send(user.avatar);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    userService.handleError(res, err, "Gagal mengambil avatar");
   }
 });
 
@@ -169,17 +118,7 @@ app.put('/api/profile/:userId', async (req, res) => {
     const { userId } = req.params;
     const { username, email, password, birthday, gender } = req.body;
 
-    const updateData = {};
-    if (username) updateData.username = username;
-    if (email) updateData.email = email;
-    if (password) updateData.password = password;
-    if (birthday !== undefined) updateData.birthday = birthday;
-    if (gender !== undefined) updateData.gender = gender;
-
-    const updatedUser = await prisma.users.update({
-      where: { id: userId },
-      data: updateData
-    });
+    const updatedUser = await userService.updateProfile(userId, { username, email, password, birthday, gender });
 
     res.json({
       success: true,
@@ -187,7 +126,7 @@ app.put('/api/profile/:userId', async (req, res) => {
       data: updatedUser
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Gagal update profile: " + err.message });
+    userService.handleError(res, err, "Gagal update profile");
   }
 });
 
@@ -195,20 +134,10 @@ app.put('/api/profile/:userId', async (req, res) => {
 app.get('/api/points/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
-    // Cari user berdasarkan ID dan hanya ambil kolom 'points'
-    const user = await prisma.users.findUnique({
-      where: { id: userId },
-      select: { points: true }
-    });
-
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User tidak ditemukan" });
-    }
-
-    res.json({ success: true, points: user.points });
+    const points = await userService.getPoints(userId);
+    res.json({ success: true, points });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Gagal menarik data poin: " + err.message });
+    userService.errorResponse(res, err.message, 404);
   }
 });
 
@@ -216,40 +145,14 @@ app.get('/api/points/:userId', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ success: false, message: "Username/Email dan Password wajib diisi" });
-    }
-    const user = await prisma.users.findFirst({
-      where: { OR: [ { email: username }, { username: username }]}
-    });
-
-    if (!user) {
-      return res.status(401).json({ success: false, message: "Username/Email tidak ditemukan" });
-    }
-    if (user.password !== password) {
-      return res.status(401).json({ success: false, message: "Password salah" });
-    }
-
+    const userData = await userService.login(username, password);
     res.json({
       success: true,
       message: "Login berhasil",
-      data: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        avatar: user.avatar ? `/api/avatar/${user.id}` : "/asset/profile.png",
-        level: user.level || 1,
-        joinDate: user.joinDate || new Date().toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        }),
-        birthday: user.birthday || "-",
-        gender: user.gender || "-"
-      }
+      data: userData
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server: " + err.message });
+    userService.errorResponse(res, err.message, 401);
   }
 });
 
@@ -268,58 +171,13 @@ app.post('/api/transaction', async (req, res) => {
       return res.status(400).json({ success: false, message: "Data transaksi tidak lengkap" });
     }
 
-    // Cek user exists dan cek saldo poin
-    const user = await prisma.users.findUnique({ where: { id: userId } });
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User tidak ditemukan" });
-    }
-    if (billing.pointsUsed > user.points) {
-      return res.status(400).json({ success: false, message: "Poin tidak cukup" });
-    }
-
-    // Buat invoice ID unik (timestamp + random untuk hindari kolisi)
-    const invoiceId = `RAST7-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-
-    // Simpan ke database
-    const newTransaction = await prisma.transactions.create({
-      data: {
-        invoiceId,
-        userId,
-        accountId: targetAccount.accountId,
-        zoneId: targetAccount.zoneId,
-        gameName: purchaseDetails.gameName,
-        itemName: purchaseDetails.itemName,
-        itemQty: purchaseDetails.itemQty,
-        paymentMethod: purchaseDetails.paymentMethod,
-        basePrice: billing.basePrice,
-        taxAmount: billing.taxAmount,
-        discountPoints: billing.pointsUsed,
-        totalPaid: billing.totalPaid,
-        waktu: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
-        status: "SUCCESS"
-      }
+    const newTransaction = await transactionService.createTransaction({
+      userId, targetAccount, purchaseDetails, billing
     });
-
-    // Potong poin user jika digunakan
-    if (billing.pointsUsed > 0) {
-      await prisma.users.update({
-        where: { id: userId },
-        data: { points: { decrement: billing.pointsUsed } }
-      });
-    }
-
-    // Tambah poin reward (1% dari total pembayaran)
-    const rewardPoints = Math.floor(billing.totalPaid * 0.01);
-    if (rewardPoints > 0) {
-      await prisma.users.update({
-        where: { id: userId },
-        data: { points: { increment: rewardPoints } }
-      });
-    }
 
     res.json({ success: true, message: "Transaksi berhasil disimpan", data: newTransaction });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Gagal menyimpan transaksi: " + err.message });
+    transactionService.handleError(res, err, "Gagal menyimpan transaksi");
   }
 });
 
@@ -327,13 +185,10 @@ app.post('/api/transaction', async (req, res) => {
 app.get('/api/history/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const history = await prisma.transactions.findMany({
-      where: { userId: userId },
-      orderBy: { createdAt: 'desc' } // Urutkan dari yang terbaru
-    });
+    const history = await transactionService.getHistory(userId);
     res.json({ success: true, data: history });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Gagal mengambil riwayat: " + err.message });
+    transactionService.handleError(res, err, "Gagal mengambil riwayat");
   }
 });
 
@@ -341,41 +196,15 @@ app.get('/api/history/:userId', async (req, res) => {
 app.post('/api/redeem', async (req, res) => {
   try {
     const { userId, code } = req.body;
+    const result = await transactionService.redeemVoucher(userId, code);
 
-    // Cari voucher
-    const voucher = await prisma.vouchers.findUnique({ where: { code: code.toUpperCase() } });
-
-    if (!voucher || !voucher.isActive) {
-      return res.status(400).json({ success: false, message: "Kode voucher tidak valid atau sudah tidak aktif." });
-    }
-    if (voucher.usedCount >= voucher.quota) {
-      return res.status(400).json({ success: false, message: "Kuota voucher sudah habis." });
-    }
-
-    // Tambah poin ke user & update voucher (menggunakan rewardValue)
-    await prisma.$transaction([
-      prisma.users.update({
-        where: { id: userId },
-        data: { points: { increment: voucher.rewardValue } } 
-      }),
-      prisma.vouchers.update({
-        where: { id: voucher.id },
-        data: { usedCount: { increment: 1 } }
-      })
-    ]);
-
-    // Ambil data user terbaru untuk dikembalikan ke frontend
-    const updatedUser = await prisma.users.findUnique({ where: { id: userId } });
-
-    res.json({ 
-      success: true, 
-      message: `Berhasil! +${voucher.rewardValue} Poin ditambahkan.`,
-      newPoints: updatedUser.points
+    res.json({
+      success: true,
+      message: `Berhasil! +${result.rewardValue} Poin ditambahkan.`,
+      newPoints: result.newPoints
     });
   } catch (err) {
-    // Tampilkan pesan error asli di terminal untuk mempermudah debugging
-    console.error("Error saat redeem voucher:", err); 
-    res.status(500).json({ success: false, message: "Terjadi kesalahan sistem." });
+    transactionService.errorResponse(res, err.message);
   }
 });
 
@@ -383,12 +212,10 @@ app.post('/api/redeem', async (req, res) => {
 app.delete('/api/deleteUser/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const deletedUser = await prisma.users.delete({
-      where: { id: userId }
-    });
+    const deletedUser = await userService.deleteUser(userId);
     res.json({ success: true, message: "User berhasil dihapus", data: deletedUser });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server: " + err.message });
+    userService.handleError(res, err, "Gagal menghapus user");
   }
 });
 

@@ -37,7 +37,6 @@ model games {
   name        String   // "Mobile Legends: Bang Bang"
   slug        String   @unique // "mlbb", "roblox"
   logoUrl     String   // "/asset/logo_game/mlbb.png"
-  bgUrl       String?  // Background banner spesifik game
 
   // Embedded Document: Katalog harga diamond/robux/VP
   items       TopUpItem[]
