@@ -37,6 +37,17 @@ model games {
   name        String   // "Mobile Legends: Bang Bang"
   slug        String   @unique // "mlbb", "roblox"
   logoUrl     String   // "/asset/logo_game/mlbb.png"
+  itemIconUrl String?  // "/asset/logo_game/diamond.png" — icon shown on item cards
+
+  bgUrl              String?   // "/asset/logo_game/coc_bg.png"
+  bgPosition         String?   // "50% calc(50% - 300px)"
+  hasZone            Boolean   @default(true)
+  userIdLabel        String    @default("USER ID")
+  userIdPlaceholder  String    @default("Masukkan User ID")
+  zoneIdLabel        String    @default("ZONE ID")
+  zoneIdPlaceholder  String    @default("Zone ID")
+  zoneIdHint         String    @default("4 DIGIT")
+  zoneIdMaxLength    Int       @default(4)
 
   // Embedded Document: Katalog harga diamond/robux/VP
   items       TopUpItem[]

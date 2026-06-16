@@ -86,7 +86,6 @@
 /* ===== INPUT ID ====== */
 
 .game-content .game-input-container {
-    /* box-shadow: inset 0 4px 12px rgba(233, 233, 240, 0.2); */
     box-shadow:inset 0 0 30px 10px rgba(0, 0, 0, 0.1),0 0 30px 10px rgba(255, 255, 255, .1);
     width: 100%;
     margin-inline: .3rem;
@@ -180,11 +179,9 @@
 
 .game-content .game-id-section .game-input-group input::placeholder{
     color: rgba(245, 245, 245,.7);
-
 }
 
 /* ===== INPUT ID END ====== */
-
 
 /* ===== INPUT NOMINAL ====== */
 
@@ -205,7 +202,6 @@
 .game-card.active {
     outline: 5px solid #00aaff;
     outline-offset: 2px;
-    
 }
 
 .game-card:hover {
@@ -260,7 +256,6 @@
     text-decoration: line-through;
     color: rgb(145 ,141, 161);
     font-size: .7rem;
-
 }
 
 /* ==== PILIH PEMBAYARAN ===== */

@@ -28,3 +28,6 @@ uploads/
 #topsecret
 CLAUDE.md
 .env
+
+# AI / Superpowers planning artifacts
+docs/superpowers/

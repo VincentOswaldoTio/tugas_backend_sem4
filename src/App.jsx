@@ -3,9 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-import Mlbb from './pages/Mlbb';
-import Coc from './pages/Coc';
-import Roblox from './pages/Roblox';
+import GamePage from './pages/GamePage';
 import Pembayaran from './pages/Pembayaran';
 import History from './pages/History';
 import Promo from './pages/Promo';
@@ -20,7 +18,6 @@ import Register from './pages/Register';
 import Reset from './pages/Reset';
 import Summary from './pages/Summary';
 import Voucher from './pages/Voucher';
-import Valorant from './pages/Valorant';
 import './styles/Animations.css'
 import './App.css';
 import { PointProvider } from "./components/PointContext";
@@ -49,10 +46,7 @@ function App() {
             <Header />
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/game/mlbb" element={<Mlbb />} />
-              <Route path="/game/roblox" element={<Roblox />} />
-              <Route path="/game/coc" element={<Coc />} />
-              <Route path="/game/valorant" element={<Valorant />} />
+              <Route path="/game/:slug" element={<GamePage />} />
               <Route path="/pembayaran" element={<Pembayaran />} />
               <Route path="/history" element={<History />} />
               <Route path="/promo" element={<Promo />} />
