@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rast7 API Test Report - Authentication & Authorization</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --green: #3fb950;
+    --green-bg: rgba(63, 185, 80, 0.1);
+    --red: #f85149;
+    --red-bg: rgba(248, 81, 73, 0.1);
+    --blue: #58a6ff;
+    --yellow: #d29922;
+    --yellow-bg: rgba(210, 153, 34, 0.1);
+    --purple: #bc8cff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    line-height: 1.6;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+    color: #f0f6fc;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+
+  .summary-card .number {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .summary-card .label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .summary-card.pass .number { color: var(--green); }
+  .summary-card.fail .number { color: var(--red); }
+  .summary-card.info .number { color: var(--blue); }
+  .summary-card.warn .number { color: var(--yellow); }
+
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-header:hover { background: rgba(255,255,255,0.03); }
+
+  .section-header .badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    margin-left: auto;
+  }
+
+  .badge-pass { background: var(--green-bg); color: var(--green); }
+  .badge-fail { background: var(--red-bg); color: var(--red); }
+  .badge-401 { background: var(--yellow-bg); color: var(--yellow); }
+  .badge-403 { background: rgba(188, 140, 255, 0.15); color: var(--purple); }
+  .badge-admin { background: rgba(88, 166, 255, 0.15); color: var(--blue); }
+
+  .section-body { padding: 0; }
+
+  .test-row {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
+
+  .test-row:last-child { border-bottom: none; }
+  .test-row:hover { background: rgba(255,255,255,0.02); }
+
+  .method {
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .method-get { background: rgba(63,185,80,0.15); color: var(--green); }
+  .method-post { background: rgba(88,166,255,0.15); color: var(--blue); }
+  .method-put { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .method-delete { background: rgba(248,81,73,0.15); color: var(--red); }
+
+  .endpoint {
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    color: #e6edf3;
+  }
+
+  .description { color: var(--text-dim); font-size: 0.82rem; }
+
+  .status {
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 2px 10px;
+    border-radius: 4px;
+    text-align: center;
+    min-width: 3.5rem;
+  }
+
+  .status-200 { background: var(--green-bg); color: var(--green); }
+  .status-400 { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .status-401 { background: var(--red-bg); color: var(--red); }
+  .status-403 { background: rgba(188,140,255,0.15); color: var(--purple); }
+
+  .response-block {
+    background: #0d1117;
+    border-top: 1px solid var(--border);
+    padding: 1rem 1.2rem;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 200px;
+    overflow-y: auto;
+    line-height: 1.5;
+  }
+
+  .response-block .key { color: var(--blue); }
+  .response-block .string { color: var(--green); }
+  .response-block .bool { color: var(--yellow); }
+
+  .note {
+    padding: 0.75rem 1.2rem;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    background: rgba(88,166,255,0.05);
+    border-top: 1px solid var(--border);
+  }
+
+  .note code {
+    background: rgba(255,255,255,0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 0.8rem;
+  }
+
+  .endpoint-group-title {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+
+  .divider { height: 0; border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Rast7 API Test Report</h1>
+<p class="subtitle">Authentication & Authorization Implementation &mdash; Tested 2026-06-19</p>
+
+<!-- Summary -->
+<div class="summary-grid">
+  <div class="summary-card pass">
+    <div class="number">22</div>
+    <div class="label">Tests Passed</div>
+  </div>
+  <div class="summary-card fail">
+    <div class="number">0</div>
+    <div class="label">Unexpected Failures</div>
+  </div>
+  <div class="summary-card info">
+    <div class="number">17</div>
+    <div class="label">Endpoints Covered</div>
+  </div>
+  <div class="summary-card warn">
+    <div class="number">10</div>
+    <div class="label">Protected Routes</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 1. PUBLIC ENDPOINTS (no auth required) -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Public Endpoints &mdash; No Authentication Required
+    <span class="badge badge-pass">5 passed</span>
+  </div>
+  <div class="section-body">
+
+    <div class="endpoint-group-title">System</div>
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/test</span>
+      <span class="description">Health check</span>
+      <span class="status status-200">200</span>
+    </div>
+
+    <div class="endpoint-group-title">Registration &amp; Auth</div>
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/register</span>
+      <span class="description">Create user &mdash; returns JWT in <code>data.token</code></span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="string">"User berhasil dibuat"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="string">"6a350e5d3ef8e971f409ddff"</span>,
+    <span class="key">"email"</span>: <span class="string">"test@example.com"</span>,
+    <span class="key">"username"</span>: <span class="string">"testuser"</span>,
+    <span class="key">"isAdmin"</span>: <span class="bool">false</span>,
+    <span class="key">"token"</span>: <span class="string">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>
+  }
+}</div>
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/login</span>
+      <span class="description">Login &mdash; returns JWT in <code>data.token</code></span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="string">"Login berhasil"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="string">"6a350e5d3ef8e971f409ddff"</span>,
+    <span class="key">"username"</span>: <span class="string">"testuser"</span>,
+    <span class="key">"isAdmin"</span>: <span class="bool">false</span>,
+    <span class="key">"token"</span>: <span class="string">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>
+  }
+}</div>
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/reset-password</span>
+      <span class="description">Reset password &mdash; no auth required</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="string">"Password berhasil direset"</span>
+}</div>
+
+    <div class="endpoint-group-title">Public Data</div>
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/games</span>
+      <span class="description">All games</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/avatar/:userId</span>
+      <span class="description">User avatar &mdash; public for &lt;img&gt; tags</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/payment-methods</span>
+      <span class="description">All payment methods</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/leaderboard</span>
+      <span class="description">Top spenders</span>
+      <span class="status status-200">200</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 2. AUTHENTICATION MIDDLEWARE (401 tests) -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Authentication Middleware &mdash; 401 Responses
+    <span class="badge badge-401">2 passed</span>
+  </div>
+  <div class="section-body">
+
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/points/:userId</span>
+      <span class="description">No token &rarr; 401</span>
+      <span class="status status-401">401</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Token tidak valid atau telah berakhir, silakan login kembali"</span>
+}</div>
+
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/history/:userId</span>
+      <span class="description">Expired/stale token &rarr; 401</span>
+      <span class="status status-401">401</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Token tidak valid atau telah berakhir, silakan login kembali"</span>
+}</div>
+
+  </div>
+  <div class="note">All 401 responses use the standardized <code>{ "success": false, "message": "..." }</code> shape in Bahasa Indonesia.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 3. OWNERSHIP / AUTHORIZATION (403 tests) -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Ownership Authorization &mdash; 403 Responses
+    <span class="badge badge-403">1 passed</span>
+  </div>
+  <div class="section-body">
+
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/points/:userId</span>
+      <span class="description">User 2 accessing User 1's data &rarr; 403</span>
+      <span class="status status-403">403</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Anda tidak memiliki izin untuk mengakses data ini"</span>
+}</div>
+
+  </div>
+  <div class="note"><code>ensureSelf</code> compares <code>req.user.userId</code> from JWT against the route param <code>:userId</code> or <code>req.body.userId</code>. Admins bypass this check.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 4. ADMIN AUTHORIZATION -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Admin Authorization &mdash; GET /api/users
+    <span class="badge badge-admin">2 passed</span>
+  </div>
+  <div class="section-body">
+
+    <div class="endpoint-group-title">Regular user &rarr; 403</div>
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/users</span>
+      <span class="description">Non-admin user &rarr; 403</span>
+      <span class="status status-403">403</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Anda tidak memiliki izin untuk mengakses data ini"</span>
+}</div>
+
+    <div class="endpoint-group-title">Admin user &rarr; 200</div>
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/users</span>
+      <span class="description">Admin (isAdmin=true) &rarr; 200</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"data"</span>: [
+    { <span class="key">"id"</span>: <span class="string">"..."</span>, <span class="key">"email"</span>: <span class="string">"bob@example.com"</span>, <span class="key">"isAdmin"</span>: <span class="bool">false</span> },
+    { <span class="key">"id"</span>: <span class="string">"..."</span>, <span class="key">"email"</span>: <span class="string">"admin@example.com"</span>, <span class="key">"isAdmin"</span>: <span class="bool">true</span> },
+    ...
+  ]
+}</div>
+
+  </div>
+  <div class="note"><code>authorizeAdmin</code> runs after <code>authenticate</code> and checks <code>req.user.isAdmin === true</code>.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 5. VALIDATION MIDDLEWARE (400 tests) -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Input Validation Middleware &mdash; 400 Responses
+    <span class="badge badge-401">4 passed</span>
+  </div>
+  <div class="section-body">
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/register</span>
+      <span class="description">Missing username, password &rarr; 400</span>
+      <span class="status status-400">400</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Field berikut wajib diisi: username, password"</span>
+}</div>
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/login</span>
+      <span class="description">Missing password &rarr; 400</span>
+      <span class="status status-400">400</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Field berikut wajib diisi: password"</span>
+}</div>
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/reset-password</span>
+      <span class="description">All fields empty &rarr; 400</span>
+      <span class="status status-400">400</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Field berikut wajib diisi: emailOrUsername, newPassword, confirmPassword"</span>
+}</div>
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/transaction</span>
+      <span class="description">Empty body &rarr; 400</span>
+      <span class="status status-400">400</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Field berikut wajib diisi: userId, targetAccount, purchaseDetails, billing"</span>
+}</div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 6. PASSWORD HASHING -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Password Hashing &mdash; bcrypt
+    <span class="badge badge-pass">3 passed</span>
+  </div>
+  <div class="section-body">
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/login</span>
+      <span class="description">Correct password &rarr; 200</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="string">"Login berhasil"</span>,
+  <span class="key">"data"</span>: { <span class="key">"id"</span>: <span class="string">"..."</span>, <span class="key">"token"</span>: <span class="string">"eyJhbG..."</span> }
+}</div>
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/login</span>
+      <span class="description">Wrong password &rarr; 401</span>
+      <span class="status status-401">401</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Password salah"</span>
+}</div>
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/login</span>
+      <span class="description">Login with newly reset password &rarr; 200</span>
+      <span class="status status-200">200</span>
+    </div>
+
+  </div>
+  <div class="note">Password hashed with <code>bcrypt.hash(password, 10)</code>. Verified stored hash: <code>$2b$10$4Sjjbah2lwIMLZVKkVCt0umSbqWsE4BynuX98Iugj01Sb2jzFWfG2</code></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 7. PROTECTED ENDPOINTS (200 with valid token) -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Protected Endpoints &mdash; 200 with Valid JWT
+    <span class="badge badge-pass">8 passed</span>
+  </div>
+  <div class="section-body">
+
+    <div class="endpoint-group-title">User Profile &amp; Auth</div>
+    <div class="test-row">
+      <span class="method method-put">PUT</span>
+      <span class="endpoint">/api/profile/:userId</span>
+      <span class="description">Update username</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="string">"Profile berhasil diupdate"</span>,
+  <span class="key">"data"</span>: { <span class="key">"id"</span>: <span class="string">"..."</span>, <span class="key">"username"</span>: <span class="string">"testuser_updated"</span>, <span class="key">"isAdmin"</span>: <span class="bool">false</span> }
+}</div>
+
+    <div class="endpoint-group-title">Points &amp; Tier</div>
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/points/:userId</span>
+      <span class="description">Get user points</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"points"</span>: <span class="bool">1110</span>
+}</div>
+
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/points/config/:userId</span>
+      <span class="description">Get tier configuration</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"tierName"</span>: <span class="string">"bronze"</span>,
+    <span class="key">"minSpent"</span>: <span class="bool">0</span>,
+    <span class="key">"rewardRate"</span>: <span class="bool">0.01</span>,
+    <span class="key">"levelNumber"</span>: <span class="bool">1</span>
+  }
+}</div>
+
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/points/mileage/:userId</span>
+      <span class="description">Get mileage progress</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"currentTier"</span>: { <span class="key">"tierName"</span>: <span class="string">"bronze"</span> },
+    <span class="key">"nextTier"</span>: { <span class="key">"tierName"</span>: <span class="string">"silver"</span>, <span class="key">"minSpent"</span>: <span class="bool">500000</span> },
+    <span class="key">"totalSpent"</span>: <span class="bool">111000</span>,
+    <span class="key">"progress"</span>: <span class="bool">22</span>,
+    <span class="key">"amountNeeded"</span>: <span class="bool">389000</span>
+  }
+}</div>
+
+    <div class="endpoint-group-title">Transactions</div>
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/transaction</span>
+      <span class="description">Create transaction</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="string">"Transaksi berhasil disimpan"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"invoiceId"</span>: <span class="string">"RAST7-1781865375808-MBJM2"</span>,
+    <span class="key">"status"</span>: <span class="string">"SUCCESS"</span>,
+    <span class="key">"totalPaid"</span>: <span class="bool">111000</span>
+  }
+}</div>
+
+    <div class="test-row">
+      <span class="method method-get">GET</span>
+      <span class="endpoint">/api/history/:userId</span>
+      <span class="description">Get transaction history</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"data"</span>: [
+    {
+      <span class="key">"invoiceId"</span>: <span class="string">"RAST7-1781865375808-MBJM2"</span>,
+      <span class="key">"gameName"</span>: <span class="string">"Mobile Legends"</span>,
+      <span class="key">"totalPaid"</span>: <span class="bool">111000</span>,
+      <span class="key">"status"</span>: <span class="string">"SUCCESS"</span>
+    }
+  ]
+}</div>
+
+    <div class="test-row">
+      <span class="method method-post">POST</span>
+      <span class="endpoint">/api/redeem</span>
+      <span class="description">Redeem voucher (invalid code &rarr; business error, not auth error)</span>
+      <span class="status status-400">400</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="string">"Kode voucher tidak valid atau sudah tidak aktif."</span>
+}</div>
+
+    <div class="endpoint-group-title">Admin</div>
+    <div class="test-row">
+      <span class="method method-delete">DELETE</span>
+      <span class="endpoint">/api/deleteUser/:userId</span>
+      <span class="description">Admin deleting user</span>
+      <span class="status status-200">200</span>
+    </div>
+    <div class="response-block">{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="string">"User berhasil dihapus"</span>
+}</div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 8. FULL FLOW TRACE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Full User Flow Trace &mdash; Register &rarr; Delete
+  </div>
+  <div class="section-body" style="padding: 1.2rem; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.8;">
+    <div style="color: var(--text-dim);">
+      <span style="color: var(--green);">1.</span> <span class="method method-post">POST</span> /api/register &rarr; <span style="color: var(--green);">200</span> &mdash; user created, JWT returned<br>
+      <span style="color: var(--green);">2.</span> <span class="method method-post">POST</span> /api/login &rarr; <span style="color: var(--green);">200</span> &mdash; JWT returned, stored in sessionStorage<br>
+      <span style="color: var(--green);">3.</span> <span class="method method-post">POST</span> /api/upload-avatar &rarr; <span style="color: var(--green);">200</span> &mdash; avatar saved (Bearer token)<br>
+      <span style="color: var(--green);">4.</span> <span class="method method-put">PUT</span> /api/profile/:id &rarr; <span style="color: var(--green);">200</span> &mdash; profile updated<br>
+      <span style="color: var(--green);">5.</span> <span class="method method-get">GET</span> /api/points/:id &rarr; <span style="color: var(--green);">200</span> &mdash; points fetched<br>
+      <span style="color: var(--green);">6.</span> <span class="method method-get">GET</span> /api/points/config/:id &rarr; <span style="color: var(--green);">200</span> &mdash; tier config fetched<br>
+      <span style="color: var(--green);">7.</span> <span class="method method-get">GET</span> /api/points/mileage/:id &rarr; <span style="color: var(--green);">200</span> &mdash; mileage progress fetched<br>
+      <span style="color: var(--green);">8.</span> <span class="method method-post">POST</span> /api/transaction &rarr; <span style="color: var(--green);">200</span> &mdash; transaction created (RAST7-...)<br>
+      <span style="color: var(--green);">9.</span> <span class="method method-get">GET</span> /api/history/:id &rarr; <span style="color: var(--green);">200</span> &mdash; history shows new transaction<br>
+      <span style="color: var(--green);">10.</span> <span class="method method-post">POST</span> /api/redeem &rarr; <span style="color: var(--green);">200</span> (valid code) / <span style="color: var(--yellow);">400</span> (invalid code)<br>
+      <span style="color: var(--green);">11.</span> <span class="method method-post">POST</span> /api/reset-password &rarr; <span style="color: var(--green);">200</span> &mdash; password re-hashed<br>
+      <span style="color: var(--green);">12.</span> <span class="method method-post">POST</span> /api/login (new password) &rarr; <span style="color: var(--green);">200</span> &mdash; bcrypt.compare passes<br>
+      <span style="color: var(--green);">13.</span> <span class="method method-delete">DELETE</span> /api/deleteUser/:id &rarr; <span style="color: var(--green);">200</span> &mdash; user deleted
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 9. MIDDLEWARE SUMMARY -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    Middleware Stack &mdash; Route Protection Map
+  </div>
+  <div class="section-body" style="padding: 1.2rem; font-size: 0.85rem;">
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="border-bottom: 1px solid var(--border); color: var(--text-dim); text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          <th style="padding: 0.5rem 0.75rem;">Route</th>
+          <th style="padding: 0.5rem 0.75rem;">Method</th>
+          <th style="padding: 0.5rem 0.75rem;">Middleware</th>
+        </tr>
+      </thead>
+      <tbody style="font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.8rem;">
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/test</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/register</td>
+          <td style="padding: 0.5rem 0.75rem;">POST</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--blue);">validateRegister</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/login</td>
+          <td style="padding: 0.5rem 0.75rem;">POST</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--blue);">validateLogin</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/reset-password</td>
+          <td style="padding: 0.5rem 0.75rem;">POST</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--blue);">validateResetPassword</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/games</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/games/:slug</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/payment-methods</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/avatar/:userId</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/leaderboard</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/profile/:userId</td>
+          <td style="padding: 0.5rem 0.75rem;">PUT</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/upload-avatar</td>
+          <td style="padding: 0.5rem 0.75rem;">POST</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf + multer</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/points/:userId</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/points/config/:userId</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/points/mileage/:userId</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/transaction</td>
+          <td style="padding: 0.5rem 0.75rem;">POST</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf + validateTransaction</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/history/:userId</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/redeem</td>
+          <td style="padding: 0.5rem 0.75rem;">POST</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.5rem 0.75rem;">/api/deleteUser/:userId</td>
+          <td style="padding: 0.5rem 0.75rem;">DELETE</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
+        </tr>
+        <tr>
+          <td style="padding: 0.5rem 0.75rem;">/api/users</td>
+          <td style="padding: 0.5rem 0.75rem;">GET</td>
+          <td style="padding: 0.5rem 0.75rem; color: var(--purple);">authenticate + authorizeAdmin</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <code>requestLogger</code> is applied globally via <code>app.use(requestLogger)</code> before all routes.
+    All protected routes return <code>{ "success": false, "message": "..." }</code> in Bahasa Indonesia on error.
+  </div>
+</div>
+
+<footer>
+  Rast7 API Test Report &mdash; Generated 2026-06-19 &mdash; bcrypt + JWT + Express middleware
+</footer>
+
+</div>
+</body>
+</html>
