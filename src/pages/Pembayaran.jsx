@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { PointContext } from '../components/PointContext';
 import { TransactionContext } from '../components/TransactionContext';
+import { api } from '../utils/api.js';
 import '../styles/Pembayaran.css';
 
 const Pembayaran = () => {
@@ -31,7 +32,7 @@ const Pembayaran = () => {
   // Fetch konfigurasi poin user
   useEffect(() => {
     if (sessionUser?.id) {
-      fetch(`/api/points/config/${sessionUser.id}`)
+      api.get(`/api/points/config/${sessionUser.id}`)
         .then(res => res.json())
         .then(result => {
           if (result.success && result.data) {
@@ -83,11 +84,7 @@ const Pembayaran = () => {
     };
 
     try {
-      const response = await fetch('/api/transaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqBody)
-      });
+      const response = await api.post('/api/transaction', reqBody);
       const result = await response.json();
 
       if (result.success) {

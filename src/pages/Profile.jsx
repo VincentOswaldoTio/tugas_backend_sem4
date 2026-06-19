@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { api } from '../utils/api.js';
 import '../styles/Profile.css';
 import '../styles/Animations.css';
 
@@ -90,7 +91,7 @@ const Profile = () => {
   // Fetch mileage progress data
   useEffect(() => {
     if (userData?.id) {
-      fetch(`/api/points/mileage/${userData.id}`)
+      api.get(`/api/points/mileage/${userData.id}`)
         .then(res => res.json())
         .then(result => {
           if (result.success && result.data) {
@@ -255,13 +256,7 @@ const Profile = () => {
       }
 
       // Kirim request ke backend API
-      const response = await fetch(`/api/profile/${userData.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedData)
-      });
+      const response = await api.put(`/api/profile/${userData.id}`, updatedData);
 
       const result = await response.json();
 
@@ -338,10 +333,7 @@ const Profile = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/upload-avatar', {
-        method: 'POST',
-        body: formDataUpload
-      });
+      const response = await api.postForm('/api/upload-avatar', formDataUpload);
 
       const result = await response.json();
 
@@ -389,9 +381,7 @@ const Profile = () => {
 
       try {
         // Call API backend untuk delete user
-        const response = await fetch(`/api/deleteUser/${userData.id}`, {
-          method: 'DELETE'
-        });
+        const response = await api.delete(`/api/deleteUser/${userData.id}`);
 
         const result = await response.json();
 

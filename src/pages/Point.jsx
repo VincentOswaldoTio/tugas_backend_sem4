@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { PointContext } from "../components/PointContext";
+import { api } from '../utils/api.js';
 import '../styles/Point.css';
 
 const Point = () => {
@@ -15,7 +16,7 @@ const Point = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const response = await fetch('/api/leaderboard');
+        const response = await api.get('/api/leaderboard');
         const result = await response.json();
         if (result.success) {
           setLeaderboard(result.data);
@@ -28,7 +29,7 @@ const Point = () => {
           try {
             const { id: userId } = JSON.parse(userData);
             if (userId) {
-              fetch(`/api/points/config/${userId}`)
+              api.get(`/api/points/config/${userId}`)
                 .then(r => r.json())
                 .then(result => { if (result.success) setTierConfig(result.data); })
                 .catch(() => {});

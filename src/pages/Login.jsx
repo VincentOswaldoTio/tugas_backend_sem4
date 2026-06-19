@@ -63,8 +63,8 @@ const Login = () => {
       // Simpan data user yang login ke sessionStorage
       const userData = result.data;
 
-      // Simpan ke sessionStorage
-      sessionStorage.setItem('authToken', 'dummy-token-' + Date.now());
+      // Simpan ke sessionStorage -gunakan token JWT dari backend
+      sessionStorage.setItem('authToken', userData.token);
       sessionStorage.setItem('userData', JSON.stringify(userData));
       sessionStorage.setItem('currentUser', JSON.stringify(userData));
 
@@ -155,7 +155,7 @@ const Login = () => {
 
       // Success - set up session
       const userData = result.data;
-      sessionStorage.setItem('authToken', 'demo-token-' + Date.now());
+      sessionStorage.setItem('authToken', userData.token);
       sessionStorage.setItem('userData', JSON.stringify(userData));
       sessionStorage.setItem('currentUser', JSON.stringify(userData));
       sessionStorage.setItem('loginTime', Date.now().toString());

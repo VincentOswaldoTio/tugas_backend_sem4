@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '../utils/api.js';
 import '../styles/History.css';
 
 const History = () => {
@@ -13,10 +14,10 @@ const History = () => {
         setIsLoading(false);
         return;
       }
-      
+
       const user = JSON.parse(sessionData);
       try {
-        const response = await fetch(`/api/history/${user.id}`);
+        const response = await api.get(`/api/history/${user.id}`);
         const result = await response.json();
         if (result.success) setDbTransactions(result.data);
       } catch (error) {

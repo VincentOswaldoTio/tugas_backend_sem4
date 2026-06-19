@@ -4,6 +4,7 @@ import { PointContext } from "../components/PointContext";
 import Notification from "../components/Notification";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { api } from '../utils/api.js';
 import "../styles/Voucher.css";
 
 const Voucher = () => {
@@ -42,11 +43,7 @@ const Voucher = () => {
     const user = JSON.parse(sessionData);
 
     try {
-      const response = await fetch('/api/redeem', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, code: inputCode })
-      });
+      const response = await api.post('/api/redeem', { userId: user.id, code: inputCode });
       const result = await response.json();
 
       if (result.success) {

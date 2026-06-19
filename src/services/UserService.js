@@ -1,4 +1,6 @@
 import BaseService from './BaseService.js';
+import bcrypt from 'bcrypt';
+import { generateToken } from '../middleware/auth.js';
 
 class UserService extends BaseService {
 
@@ -18,13 +20,32 @@ class UserService extends BaseService {
       if (existingUser.username === username) throw new Error("Username sudah digunakan");
     }
 
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const joinDate = new Date().toLocaleDateString('en-GB', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
 
-    return await this.prisma.users.create({
-      data: { email, username, password, joinDate, createdAt: new Date() }
+    const newUser = await this.prisma.users.create({
+      data: { email, username, password: hashedPassword, joinDate, createdAt: new Date() }
     });
+
+    // Generate JWT token for the new user
+    const token = generateToken(newUser);
+
+    return {
+      id: newUser.id,
+      email: newUser.email,
+      username: newUser.username,
+      avatar: newUser.avatar ? `/api/avatar/${newUser.id}` : "/asset/profile.png",
+      level: newUser.level || 1,
+      joinDate: newUser.joinDate || joinDate,
+      birthday: newUser.birthday || "-",
+      gender: newUser.gender || "-",
+      isAdmin: newUser.isAdmin || false,
+      token
+    };
   }
 
   async login(username, password) {
@@ -37,7 +58,13 @@ class UserService extends BaseService {
     });
 
     if (!user) throw new Error("Username/Email tidak ditemukan");
-    if (user.password !== password) throw new Error("Password salah");
+
+    // Compare password using bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) throw new Error("Password salah");
+
+    // Generate JWT token
+    const token = generateToken(user);
 
     return {
       id: user.id,
@@ -49,13 +76,15 @@ class UserService extends BaseService {
         day: '2-digit', month: 'short', year: 'numeric'
       }),
       birthday: user.birthday || "-",
-      gender: user.gender || "-"
+      gender: user.gender || "-",
+      isAdmin: user.isAdmin || false,
+      token
     };
   }
 
   async getAllUsers() {
     const users = await this.prisma.users.findMany({
-      select: { id: true, email: true, username: true, joinDate: true, birthday: true, gender: true, avatar: true, createdAt: true }
+      select: { id: true, email: true, username: true, joinDate: true, birthday: true, gender: true, avatar: true, createdAt: true, isAdmin: true }
     });
     return users.map(user => ({
       ...user,
@@ -67,14 +96,34 @@ class UserService extends BaseService {
     const updateData = {};
     if (username) updateData.username = username;
     if (email) updateData.email = email;
-    if (password) updateData.password = password;
+    if (password) {
+      // Hash new password before updating
+      updateData.password = await bcrypt.hash(password, 10);
+    }
     if (birthday !== undefined) updateData.birthday = birthday;
     if (gender !== undefined) updateData.gender = gender;
 
-    return await this.prisma.users.update({
+    const updatedUser = await this.prisma.users.update({
       where: { id: userId },
-      data: updateData
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        joinDate: true,
+        birthday: true,
+        gender: true,
+        avatar: true,
+        createdAt: true,
+        level: true,
+        isAdmin: true
+      }
     });
+
+    return {
+      ...updatedUser,
+      avatar: updatedUser.avatar ? `/api/avatar/${updatedUser.id}` : "/asset/profile.png"
+    };
   }
 
   async uploadAvatar(userId, buffer) {
@@ -114,9 +163,12 @@ class UserService extends BaseService {
 
     if (!user) throw new Error("Email/Username tidak ditemukan");
 
+    // Hash new password before updating
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
     return await this.prisma.users.update({
       where: { id: user.id },
-      data: { password: newPassword }
+      data: { password: hashedPassword }
     });
   }
 

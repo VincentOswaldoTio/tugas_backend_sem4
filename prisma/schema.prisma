@@ -22,6 +22,7 @@ model users {
   // Tambahan untuk fitur platform Rast7
   level     Int      @default(1)
   points    Int      @default(0) // Untuk menampung saldo poin
+  isAdmin   Boolean  @default(false) // Admin role flag
 
   // Relasi: Satu user bisa memiliki banyak riwayat transaksi
   transactions transactions[]

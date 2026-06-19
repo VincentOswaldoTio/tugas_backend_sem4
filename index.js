@@ -3,8 +3,14 @@ import { prisma } from './lib/prisma';
 import multer from 'multer';
 import path from 'path';
 import { UserService, TransactionService, PointConfigService } from './src/services/index.js';
+import { requestLogger } from './src/middleware/logger.js';
+import { authenticate, ensureSelf, authorizeAdmin } from './src/middleware/auth.js';
+import { validateRegister, validateLogin, validateResetPassword, validateTransaction } from './src/middleware/validate.js';
 
 const app = express();
+
+// Global request logger
+app.use(requestLogger);
 
 app.get('/api/test', (req, res) => res.json({ ok: true }));
 
@@ -50,8 +56,8 @@ const handleMulterError = (err, req, res, next) => {
 
 // =================== ROUTES ===================
 
-// GET all users (tanpa mengembalikan data binary avatar, hanya info)
-app.get('/api/users', async (req, res) => {
+// GET all users (admin only)
+app.get('/api/users', authenticate, authorizeAdmin, async (req, res) => {
   try {
     const users = await userService.getAllUsers();
     res.status(200).json({ success: true, data: users });
@@ -61,7 +67,7 @@ app.get('/api/users', async (req, res) => {
 });
 
 // Register
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', validateRegister, async (req, res) => {
   try {
     const { email, username, password } = req.body;
     const newUser = await userService.register(email, username, password);
@@ -72,7 +78,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Upload avatar (MENYIMPAN BUFFER KE DATABASE)
-app.post('/api/upload-avatar', upload.single('avatar'), handleMulterError, async (req, res) => {
+app.post('/api/upload-avatar', authenticate, ensureSelf, upload.single('avatar'), handleMulterError, async (req, res) => {
   try {
     const { userId } = req.body;
 
@@ -96,7 +102,7 @@ app.post('/api/upload-avatar', upload.single('avatar'), handleMulterError, async
   }
 });
 
-// Endpoint untuk membaca avatar dari database
+// Endpoint untuk membaca avatar dari database (public - used in <img> tags)
 app.get('/api/avatar/:userId', async (req, res) => {
   try {
     const user = await userService.getAvatar(req.params.userId);
@@ -116,7 +122,7 @@ app.get('/api/avatar/:userId', async (req, res) => {
 });
 
 // Update profile
-app.put('/api/profile/:userId', async (req, res) => {
+app.put('/api/profile/:userId', authenticate, ensureSelf, async (req, res) => {
   try {
     const { userId } = req.params;
     const { username, email, password, birthday, gender } = req.body;
@@ -134,7 +140,7 @@ app.put('/api/profile/:userId', async (req, res) => {
 });
 
 // Endpoint untuk mengambil Poin terbaru user dari Database
-app.get('/api/points/:userId', async (req, res) => {
+app.get('/api/points/:userId', authenticate, ensureSelf, async (req, res) => {
   try {
     const { userId } = req.params;
     const points = await userService.getPoints(userId);
@@ -145,7 +151,7 @@ app.get('/api/points/:userId', async (req, res) => {
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', validateLogin, async (req, res) => {
   try {
     const { username, password } = req.body;
     const userData = await userService.login(username, password);
@@ -160,13 +166,10 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Reset password
-app.post('/api/reset-password', async (req, res) => {
+app.post('/api/reset-password', validateResetPassword, async (req, res) => {
   try {
     const { emailOrUsername, newPassword, confirmPassword } = req.body;
 
-    if (!emailOrUsername || !newPassword || !confirmPassword) {
-      return userService.errorResponse(res, "Semua field wajib diisi");
-    }
     if (newPassword !== confirmPassword) {
       return userService.errorResponse(res, "Konfirmasi password tidak cocok");
     }
@@ -188,14 +191,9 @@ app.post('/api/reset-password', async (req, res) => {
 // ==========================================
 
 // 1. Simpan Transaksi Baru
-app.post('/api/transaction', async (req, res) => {
+app.post('/api/transaction', authenticate, ensureSelf, validateTransaction, async (req, res) => {
   try {
     const { userId, targetAccount, purchaseDetails, billing } = req.body;
-
-    // Validasi input dasar
-    if (!userId || !targetAccount || !purchaseDetails || !billing) {
-      return res.status(400).json({ success: false, message: "Data transaksi tidak lengkap" });
-    }
 
     const newTransaction = await transactionService.createTransaction({
       userId, targetAccount, purchaseDetails, billing
@@ -208,7 +206,7 @@ app.post('/api/transaction', async (req, res) => {
 });
 
 // 2. Ambil Riwayat Transaksi per User
-app.get('/api/history/:userId', async (req, res) => {
+app.get('/api/history/:userId', authenticate, ensureSelf, async (req, res) => {
   try {
     const { userId } = req.params;
     const history = await transactionService.getHistory(userId);
@@ -219,7 +217,7 @@ app.get('/api/history/:userId', async (req, res) => {
 });
 
 // 3. Redeem Voucher
-app.post('/api/redeem', async (req, res) => {
+app.post('/api/redeem', authenticate, ensureSelf, async (req, res) => {
   try {
     const { userId, code } = req.body;
     const result = await transactionService.redeemVoucher(userId, code);
@@ -245,7 +243,7 @@ app.get('/api/leaderboard', async (req, res) => {
 });
 
 // Get user's point tier config
-app.get('/api/points/config/:userId', async (req, res) => {
+app.get('/api/points/config/:userId', authenticate, ensureSelf, async (req, res) => {
   try {
     const { userId } = req.params;
     const config = await pointConfigService.getConfigForUser(userId);
@@ -256,7 +254,7 @@ app.get('/api/points/config/:userId', async (req, res) => {
 });
 
 // Get user's mileage progress to next tier
-app.get('/api/points/mileage/:userId', async (req, res) => {
+app.get('/api/points/mileage/:userId', authenticate, ensureSelf, async (req, res) => {
   try {
     const { userId } = req.params;
     const mileage = await pointConfigService.getMileage(userId);
@@ -267,7 +265,7 @@ app.get('/api/points/mileage/:userId', async (req, res) => {
 });
 
 // Delete user
-app.delete('/api/deleteUser/:userId', async (req, res) => {
+app.delete('/api/deleteUser/:userId', authenticate, ensureSelf, async (req, res) => {
   try {
     const { userId } = req.params;
     const deletedUser = await userService.deleteUser(userId);
