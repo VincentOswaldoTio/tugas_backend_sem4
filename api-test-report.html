@@ -3,830 +3,1515 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rast7 API Test Report - Authentication & Authorization</title>
+<title>Rast7 API Documentation</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
   :root {
-    --bg: #0d1117;
-    --card: #161b22;
-    --border: #30363d;
-    --text: #c9d1d9;
-    --text-dim: #8b949e;
-    --green: #3fb950;
-    --green-bg: rgba(63, 185, 80, 0.1);
-    --red: #f85149;
-    --red-bg: rgba(248, 81, 73, 0.1);
-    --blue: #58a6ff;
-    --yellow: #d29922;
-    --yellow-bg: rgba(210, 153, 34, 0.1);
-    --purple: #bc8cff;
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface-hover: #f8f9fa;
+    --border: #e2e5e9;
+    --border-light: #eef0f2;
+    --text: #1a1d23;
+    --text-secondary: #5e6773;
+    --text-muted: #9099a4;
+    --accent: #4f6ef7;
+    --accent-light: #eef1ff;
+    --green: #22c55e;
+    --green-bg: #ecfdf5;
+    --green-border: #bbf7d0;
+    --red: #ef4444;
+    --red-bg: #fef2f2;
+    --red-border: #fecaca;
+    --yellow: #eab308;
+    --yellow-bg: #fefce8;
+    --yellow-border: #fef08a;
+    --orange: #f97316;
+    --orange-bg: #fff7ed;
+    --orange-border: #fed7aa;
+    --purple: #8b5cf6;
+    --purple-bg: #f5f3ff;
+    --purple-border: #ddd6fe;
+    --blue: #3b82f6;
+    --blue-bg: #eff6ff;
+    --blue-border: #bfdbfe;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08), 0 4px 10px -5px rgba(0,0,0,0.04);
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-hover: #1c2333;
+      --border: #30363d;
+      --border-light: #21262d;
+      --text: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --accent-light: #1f2937;
+      --green: #3fb950;
+      --green-bg: rgba(63,185,80,0.1);
+      --green-border: rgba(63,185,80,0.3);
+      --red: #f85149;
+      --red-bg: rgba(248,81,73,0.1);
+      --red-border: rgba(248,81,73,0.3);
+      --yellow: #d29922;
+      --yellow-bg: rgba(210,153,34,0.1);
+      --yellow-border: rgba(210,153,34,0.3);
+      --orange: #f97316;
+      --orange-bg: rgba(249,115,22,0.1);
+      --orange-border: rgba(249,115,22,0.3);
+      --purple: #bc8cff;
+      --purple-bg: rgba(140,188,255,0.08);
+      --purple-border: rgba(140,188,255,0.2);
+      --blue: #58a6ff;
+      --blue-bg: rgba(88,166,255,0.08);
+      --blue-border: rgba(88,166,255,0.2);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+      --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.4), 0 4px 10px -5px rgba(0,0,0,0.2);
+    }
+  }
 
   body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg);
     color: var(--text);
-    padding: 2rem;
     line-height: 1.6;
   }
 
-  .container { max-width: 960px; margin: 0 auto; }
-
-  h1 {
-    font-size: 1.8rem;
-    margin-bottom: 0.25rem;
-    color: #f0f6fc;
+  /* ── Layout ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
   }
 
-  .subtitle {
-    color: var(--text-dim);
-    font-size: 0.95rem;
-    margin-bottom: 2rem;
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
   }
 
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
-  .summary-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.2rem;
-    text-align: center;
+  .header-logo {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
   }
 
-  .summary-card .number {
-    font-size: 2rem;
+  .header-title {
+    font-size: 1.15rem;
     font-weight: 700;
+    color: var(--text);
   }
 
-  .summary-card .label {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .header-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-muted);
   }
 
-  .summary-card.pass .number { color: var(--green); }
-  .summary-card.fail .number { color: var(--red); }
-  .summary-card.info .number { color: var(--blue); }
-  .summary-card.warn .number { color: var(--yellow); }
+  .header-badge {
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
 
-  .section {
-    background: var(--card);
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    margin-bottom: 2.5rem;
+  }
+  .hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    max-width: 600px;
+  }
+
+  /* ── Summary ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .stat-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+  }
+
+  .stat-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .stat-card .stat-number.green { color: var(--green); }
+  .stat-card .stat-number.blue { color: var(--blue); }
+  .stat-card .stat-number.yellow { color: var(--yellow); }
+  .stat-card .stat-number.purple { color: var(--purple); }
+  .stat-card .stat-number.red { color: var(--red); }
+
+  /* ── Nav tabs ── */
+  .nav-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .nav-tab {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-tab:hover { background: var(--surface-hover); color: var(--text); }
+  .nav-tab:active { transform: scale(0.97); }
+
+  .nav-tab .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .nav-tab .dot.green { background: var(--green); }
+  .nav-tab .dot.blue { background: var(--blue); }
+  .nav-tab .dot.yellow { background: var(--yellow); }
+  .nav-tab .dot.purple { background: var(--purple); }
+  .nav-tab .dot.red { background: var(--red); }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 2.5rem;
   }
 
   .section-header {
-    padding: 1rem 1.2rem;
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
-    font-size: 1rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    user-select: none;
+    gap: 12px;
+    margin-bottom: 1rem;
+    padding: 0 0.25rem;
   }
 
-  .section-header:hover { background: rgba(255,255,255,0.03); }
+  .section-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .section-icon.green { background: var(--green-bg); }
+  .section-icon.blue { background: var(--blue-bg); }
+  .section-icon.yellow { background: var(--yellow-bg); }
+  .section-icon.purple { background: var(--purple-bg); }
+  .section-icon.red { background: var(--red-bg); }
 
-  .section-header .badge {
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-weight: 600;
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .section-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
     margin-left: auto;
   }
 
-  .badge-pass { background: var(--green-bg); color: var(--green); }
-  .badge-fail { background: var(--red-bg); color: var(--red); }
-  .badge-401 { background: var(--yellow-bg); color: var(--yellow); }
-  .badge-403 { background: rgba(188, 140, 255, 0.15); color: var(--purple); }
-  .badge-admin { background: rgba(88, 166, 255, 0.15); color: var(--blue); }
+  /* ── Endpoint Card ── */
+  .endpoint-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s;
+  }
+  .endpoint-card:hover { box-shadow: var(--shadow); }
 
-  .section-body { padding: 0; }
-
-  .test-row {
-    display: grid;
-    grid-template-columns: 4.5rem 1fr 1fr auto;
-    gap: 1rem;
+  .endpoint-head {
+    display: flex;
     align-items: center;
-    padding: 0.75rem 1.2rem;
-    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .endpoint-head:hover { background: var(--surface-hover); }
+  .endpoint-card.expanded .endpoint-head { border-bottom: 1px solid var(--border-light); }
+
+  .method-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .method-badge.get { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .method-badge.post { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .method-badge.put { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
+  .method-badge.delete { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .method-badge.patch { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+
+  .endpoint-path {
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    word-break: break-all;
+  }
+  .endpoint-path .param { color: var(--accent); }
+
+  .endpoint-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    flex: 0 0 auto;
+    max-width: 260px;
+    text-align: right;
+    display: none;
+  }
+  @media (min-width: 768px) { .endpoint-desc { display: block; } }
+
+  .expand-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .endpoint-card.expanded .expand-icon { transform: rotate(180deg); }
+
+  /* ── Endpoint Body ── */
+  .endpoint-body { display: none; }
+  .endpoint-card.expanded .endpoint-body { display: block; }
+
+  .endpoint-body-inner { padding: 1.25rem; }
+
+  .scenario-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 1rem;
   }
 
-  .test-row:last-child { border-bottom: none; }
-  .test-row:hover { background: rgba(255,255,255,0.02); }
+  .scenario-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.625rem 0.875rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+  }
+  .scenario-item.success { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .scenario-item.client-error { background: var(--yellow-bg); border: 1px solid var(--yellow-border); }
+  .scenario-item.unauthorized { background: var(--red-bg); border: 1px solid var(--red-border); }
+  .scenario-item.forbidden { background: var(--purple-bg); border: 1px solid var(--purple-border); }
+  .scenario-item.not-found { background: var(--orange-bg); border: 1px solid var(--orange-border); }
 
-  .method {
-    font-family: 'Cascadia Code', 'Fira Code', monospace;
+  .scenario-status {
+    font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
     font-size: 0.75rem;
-    padding: 3px 8px;
+    padding: 2px 8px;
     border-radius: 4px;
-    text-align: center;
+    flex-shrink: 0;
+  }
+  .scenario-item.success .scenario-status { background: var(--green); color: #fff; }
+  .scenario-item.client-error .scenario-status { background: var(--yellow); color: #000; }
+  .scenario-item.unauthorized .scenario-status { background: var(--red); color: #fff; }
+  .scenario-item.forbidden .scenario-status { background: var(--purple); color: #fff; }
+  .scenario-item.not-found .scenario-status { background: var(--orange); color: #fff; }
+
+  .scenario-label { font-weight: 500; color: var(--text); flex-shrink: 0; min-width: 80px; }
+  .scenario-response {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .method-get { background: rgba(63,185,80,0.15); color: var(--green); }
-  .method-post { background: rgba(88,166,255,0.15); color: var(--blue); }
-  .method-put { background: rgba(210,153,34,0.15); color: var(--yellow); }
-  .method-delete { background: rgba(248,81,73,0.15); color: var(--red); }
-
-  .endpoint {
-    font-family: 'Cascadia Code', 'Fira Code', monospace;
-    font-size: 0.82rem;
-    color: #e6edf3;
+  .body-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
   }
 
-  .description { color: var(--text-dim); font-size: 0.82rem; }
-
-  .status {
-    font-family: 'Cascadia Code', 'Fira Code', monospace;
-    font-weight: 700;
-    font-size: 0.82rem;
-    padding: 2px 10px;
-    border-radius: 4px;
-    text-align: center;
-    min-width: 3.5rem;
-  }
-
-  .status-200 { background: var(--green-bg); color: var(--green); }
-  .status-400 { background: rgba(210,153,34,0.15); color: var(--yellow); }
-  .status-401 { background: var(--red-bg); color: var(--red); }
-  .status-403 { background: rgba(188,140,255,0.15); color: var(--purple); }
-
-  .response-block {
-    background: #0d1117;
-    border-top: 1px solid var(--border);
-    padding: 1rem 1.2rem;
-    font-family: 'Cascadia Code', 'Fira Code', monospace;
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.78rem;
-    color: var(--text-dim);
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 200px;
-    overflow-y: auto;
-    line-height: 1.5;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text-secondary);
+    tab-size: 2;
+  }
+  .code-block .key { color: var(--blue); }
+  .code-block .string { color: var(--green); }
+  .code-block .bool,
+  .code-block .num { color: var(--purple); }
+
+  /* ── Request body pill ── */
+  .req-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--orange-bg);
+    color: var(--orange);
+    border: 1px solid var(--orange-border);
+    font-weight: 500;
+    flex-shrink: 0;
   }
 
-  .response-block .key { color: var(--blue); }
-  .response-block .string { color: var(--green); }
-  .response-block .bool { color: var(--yellow); }
+  /* ── Auth middleware card ── */
+  .middleware-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
 
-  .note {
-    padding: 0.75rem 1.2rem;
+  .middleware-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .middleware-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin-bottom: 0.5rem;
+  }
+  .middleware-name .src {
+    font-size: 0.7rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+
+  .middleware-desc {
     font-size: 0.82rem;
-    color: var(--text-dim);
-    background: rgba(88,166,255,0.05);
-    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    line-height: 1.6;
   }
-
-  .note code {
-    background: rgba(255,255,255,0.08);
+  .middleware-desc code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    background: var(--bg);
     padding: 1px 5px;
     border-radius: 3px;
-    font-family: 'Cascadia Code', 'Fira Code', monospace;
-    font-size: 0.8rem;
+    border: 1px solid var(--border-light);
   }
 
-  .endpoint-group-title {
-    padding: 0.6rem 1.2rem;
+  /* ── Flow timeline ── */
+  .timeline {
+    position: relative;
+    padding: 0.5rem 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 30px;
+    bottom: 30px;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 0.625rem 0;
+  }
+
+  .timeline-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    background: rgba(255,255,255,0.02);
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .timeline-item:first-child .timeline-num { border-color: var(--green); color: var(--green); }
+  .timeline-item:last-child .timeline-num { border-color: var(--red); color: var(--red); }
+
+  .timeline-content {
+    flex: 1;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0.85rem;
   }
 
-  .divider { height: 0; border: none; border-top: 1px solid var(--border); margin: 0; }
+  .timeline-content .method-badge { font-size: 0.65rem; padding: 2px 8px; }
+  .timeline-content .arrow { color: var(--text-muted); font-weight: 600; }
+  .timeline-content .desc { color: var(--text-secondary); }
 
-  footer {
+  /* ── Footer ── */
+  .footer {
     text-align: center;
-    color: var(--text-dim);
-    font-size: 0.8rem;
-    margin-top: 2rem;
-    padding-top: 1rem;
+    padding: 2rem;
     border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .container { padding: 1rem; }
+    .header { padding: 0 1rem; }
+    .header-subtitle { display: none; }
+    .hero h1 { font-size: 1.5rem; }
+    .endpoint-head { flex-wrap: wrap; }
+    .endpoint-desc { display: none; }
+    .endpoint-path { font-size: 0.78rem; width: 100%; order: 3; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .nav-tabs { gap: 0; padding: 0.35rem; }
+    .nav-tab { font-size: 0.75rem; padding: 0.35rem 0.65rem; }
+    .middleware-grid { grid-template-columns: 1fr; }
+    .scenario-item { flex-wrap: wrap; }
+    .scenario-response { white-space: normal; }
   }
 </style>
 </head>
 <body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-logo">R7</div>
+      <div>
+        <div class="header-title">Rast7 API</div>
+        <div class="header-subtitle">Endpoints &mdash; 19 routes</div>
+      </div>
+    </div>
+    <span class="header-badge">v1.0.0 &middot; OpenAPI 3.0</span>
+  </div>
+</header>
+
 <div class="container">
 
-<h1>Rast7 API Test Report</h1>
-<p class="subtitle">Authentication & Authorization Implementation &mdash; Tested 2026-06-19</p>
+<!-- ── HERO ── -->
+<div class="hero">
+  <h1>API <span>Documentation</span></h1>
+  <p>Complete reference for all Rast7 API endpoints. Every path, method, expected response, and error scenario.</p>
+</div>
 
-<!-- Summary -->
-<div class="summary-grid">
-  <div class="summary-card pass">
-    <div class="number">22</div>
-    <div class="label">Tests Passed</div>
+<!-- ── STATS ── -->
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-number blue">19</div>
+    <div class="stat-label">Total Endpoints</div>
   </div>
-  <div class="summary-card fail">
-    <div class="number">0</div>
-    <div class="label">Unexpected Failures</div>
+  <div class="stat-card">
+    <div class="stat-number green">9</div>
+    <div class="stat-label">Public / No Auth</div>
   </div>
-  <div class="summary-card info">
-    <div class="number">17</div>
-    <div class="label">Endpoints Covered</div>
+  <div class="stat-card">
+    <div class="stat-number yellow">9</div>
+    <div class="stat-label">Auth Required</div>
   </div>
-  <div class="summary-card warn">
-    <div class="number">10</div>
-    <div class="label">Protected Routes</div>
+  <div class="stat-card">
+    <div class="stat-number purple">1</div>
+    <div class="stat-label">Admin Only</div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- 1. PUBLIC ENDPOINTS (no auth required) -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
+<!-- ── NAV TABS ── -->
+<nav class="nav-tabs">
+  <a class="nav-tab" href="#public"><span class="dot green"></span>Public</a>
+  <a class="nav-tab" href="#auth"><span class="dot blue"></span>Auth</a>
+  <a class="nav-tab" href="#users"><span class="dot yellow"></span>Users</a>
+  <a class="nav-tab" href="#transactions"><span class="dot blue"></span>Transactions</a>
+  <a class="nav-tab" href="#admin"><span class="dot purple"></span>Admin</a>
+  <a class="nav-tab" href="#middleware"><span class="dot red"></span>Middleware</a>
+  <a class="nav-tab" href="#flow"><span class="dot yellow"></span>User Flow</a>
+</nav>
+
+<!-- ============================================================
+     PUBLIC
+     ============================================================ -->
+<section class="section" id="public">
   <div class="section-header">
-    Public Endpoints &mdash; No Authentication Required
-    <span class="badge badge-pass">5 passed</span>
+    <div class="section-icon green">&#9679;</div>
+    <div class="section-title">Public Endpoints</div>
+    <div class="section-subtitle">No authentication &mdash; 9 endpoints</div>
   </div>
-  <div class="section-body">
 
-    <div class="endpoint-group-title">System</div>
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/test</span>
-      <span class="description">Health check</span>
-      <span class="status status-200">200</span>
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/test</span>
+      <span class="endpoint-desc">Server health check</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
     </div>
-
-    <div class="endpoint-group-title">Registration &amp; Auth</div>
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/register</span>
-      <span class="description">Create user &mdash; returns JWT in <code>data.token</code></span>
-      <span class="status status-200">200</span>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">{ "ok": true }</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"message"</span>: <span class="string">"User berhasil dibuat"</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"id"</span>: <span class="string">"6a350e5d3ef8e971f409ddff"</span>,
-    <span class="key">"email"</span>: <span class="string">"test@example.com"</span>,
-    <span class="key">"username"</span>: <span class="string">"testuser"</span>,
-    <span class="key">"isAdmin"</span>: <span class="bool">false</span>,
-    <span class="key">"token"</span>: <span class="string">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>
-  }
-}</div>
-
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/login</span>
-      <span class="description">Login &mdash; returns JWT in <code>data.token</code></span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"message"</span>: <span class="string">"Login berhasil"</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"id"</span>: <span class="string">"6a350e5d3ef8e971f409ddff"</span>,
-    <span class="key">"username"</span>: <span class="string">"testuser"</span>,
-    <span class="key">"isAdmin"</span>: <span class="bool">false</span>,
-    <span class="key">"token"</span>: <span class="string">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>
-  }
-}</div>
-
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/reset-password</span>
-      <span class="description">Reset password &mdash; no auth required</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"message"</span>: <span class="string">"Password berhasil direset"</span>
-}</div>
-
-    <div class="endpoint-group-title">Public Data</div>
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/games</span>
-      <span class="description">All games</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/avatar/:userId</span>
-      <span class="description">User avatar &mdash; public for &lt;img&gt; tags</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/payment-methods</span>
-      <span class="description">All payment methods</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/leaderboard</span>
-      <span class="description">Top spenders</span>
-      <span class="status status-200">200</span>
-    </div>
-
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- 2. AUTHENTICATION MIDDLEWARE (401 tests) -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
-  <div class="section-header">
-    Authentication Middleware &mdash; 401 Responses
-    <span class="badge badge-401">2 passed</span>
-  </div>
-  <div class="section-body">
-
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/points/:userId</span>
-      <span class="description">No token &rarr; 401</span>
-      <span class="status status-401">401</span>
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/games</span>
+      <span class="endpoint-desc">List all games</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
     </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Token tidak valid atau telah berakhir, silakan login kembali"</span>
-}</div>
-
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/history/:userId</span>
-      <span class="description">Expired/stale token &rarr; 401</span>
-      <span class="status status-401">401</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Token tidak valid atau telah berakhir, silakan login kembali"</span>
-}</div>
-
-  </div>
-  <div class="note">All 401 responses use the standardized <code>{ "success": false, "message": "..." }</code> shape in Bahasa Indonesia.</div>
-</div>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- 3. OWNERSHIP / AUTHORIZATION (403 tests) -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
-  <div class="section-header">
-    Ownership Authorization &mdash; 403 Responses
-    <span class="badge badge-403">1 passed</span>
-  </div>
-  <div class="section-body">
-
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/points/:userId</span>
-      <span class="description">User 2 accessing User 1's data &rarr; 403</span>
-      <span class="status status-403">403</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Anda tidak memiliki izin untuk mengakses data ini"</span>
-}</div>
-
-  </div>
-  <div class="note"><code>ensureSelf</code> compares <code>req.user.userId</code> from JWT against the route param <code>:userId</code> or <code>req.body.userId</code>. Admins bypass this check.</div>
-</div>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- 4. ADMIN AUTHORIZATION -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
-  <div class="section-header">
-    Admin Authorization &mdash; GET /api/users
-    <span class="badge badge-admin">2 passed</span>
-  </div>
-  <div class="section-body">
-
-    <div class="endpoint-group-title">Regular user &rarr; 403</div>
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/users</span>
-      <span class="description">Non-admin user &rarr; 403</span>
-      <span class="status status-403">403</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Anda tidak memiliki izin untuk mengakses data ini"</span>
-}</div>
-
-    <div class="endpoint-group-title">Admin user &rarr; 200</div>
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/users</span>
-      <span class="description">Admin (isAdmin=true) &rarr; 200</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"data"</span>: [
-    { <span class="key">"id"</span>: <span class="string">"..."</span>, <span class="key">"email"</span>: <span class="string">"bob@example.com"</span>, <span class="key">"isAdmin"</span>: <span class="bool">false</span> },
-    { <span class="key">"id"</span>: <span class="string">"..."</span>, <span class="key">"email"</span>: <span class="string">"admin@example.com"</span>, <span class="key">"isAdmin"</span>: <span class="bool">true</span> },
-    ...
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">Returns id, name, slug, logoUrl, bgUrl for each game</span>
+          </div>
+        </div>
+        <div class="body-label">Response</div>
+        <div class="code-block">{
+  "success": true,
+  "data": [
+    { "id": "69f...", "name": "Mobile Legends", "slug": "mlbb", "logoUrl": "/asset/logo_game/mlbb.png", "bgUrl": "/asset/logo_game/mlbb-bg.png" },
+    { "id": "69f...", "name": "Valorant", "slug": "valorant", "logoUrl": "/asset/logo_game/valorant.png", "bgUrl": "/asset/logo_game/valorant-bg.jpg" }
   ]
 }</div>
-
+      </div>
+    </div>
   </div>
-  <div class="note"><code>authorizeAdmin</code> runs after <code>authenticate</code> and checks <code>req.user.isAdmin === true</code>.</div>
-</div>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- 5. VALIDATION MIDDLEWARE (400 tests) -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/games/<span class="param">:slug</span></span>
+      <span class="endpoint-desc">Get game details + top-up items</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Found</span>
+            <span class="scenario-response">Full game data with embedded TopUpItem[]</span>
+          </div>
+          <div class="scenario-item not-found">
+            <span class="scenario-status">404</span>
+            <span class="scenario-label">Not found</span>
+            <span class="scenario-response">{ "success": false, "message": "Game tidak ditemukan" }</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/payment-methods</span>
+      <span class="endpoint-desc">All payment options</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">Returns id, name, logoUrl, taxPercent for each</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/leaderboard</span>
+      <span class="endpoint-desc">Top spenders (30 days)</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Has data</span>
+            <span class="scenario-response">[ { "username": "...", "totalSpent": 500000 }, ... ]</span>
+          </div>
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Empty</span>
+            <span class="scenario-response">{ "data": [] }</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/avatar/<span class="param">:userId</span></span>
+      <span class="endpoint-desc">Avatar image (public)</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Has avatar</span>
+            <span class="scenario-response">Content-Type: image/jpeg &mdash; raw bytes</span>
+          </div>
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">No avatar</span>
+            <span class="scenario-response">Fallback &rarr; sends asset/profile.png</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-path">/api/register</span>
+      <span class="req-pill">Req: email, username, password</span>
+      <span class="endpoint-desc">Create account + JWT</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">User data + JWT in data.token</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Missing field</span>
+            <span class="scenario-response">"Field berikut wajib diisi: email, username, password"</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Duplicate</span>
+            <span class="scenario-response">"Email sudah digunakan" / "Username sudah digunakan"</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Short password</span>
+            <span class="scenario-response">"Password minimal 6 karakter"</span>
+          </div>
+        </div>
+        <div class="body-label">Request Body</div>
+        <div class="code-block">{
+  "email":    "user@example.com",
+  "username": "testuser",
+  "password": "password123"    // min 6 chars, gets bcrypt-hashed
+}</div>
+        <div class="body-label">Response Data</div>
+        <div class="code-block">{
+  "id":        "6a37b0ea1d5b378666a539a9",
+  "email":     "test@example.com",
+  "username":  "testuser",
+  "avatar":    "/asset/profile.png",
+  "level":     1,
+  "joinDate":  "21 Jun 2026",
+  "birthday":  "-",
+  "gender":    "-",
+  "isAdmin":   false,
+  "token":     "eyJhbGciOiJIUzI1NiIs..."
+}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     AUTH
+     ============================================================ -->
+<section class="section" id="auth">
   <div class="section-header">
-    Input Validation Middleware &mdash; 400 Responses
-    <span class="badge badge-401">4 passed</span>
+    <div class="section-icon blue">&#9679;</div>
+    <div class="section-title">Auth Endpoints</div>
+    <div class="section-subtitle">Public + validation &mdash; 2 endpoints</div>
   </div>
-  <div class="section-body">
 
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/register</span>
-      <span class="description">Missing username, password &rarr; 400</span>
-      <span class="status status-400">400</span>
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-path">/api/login</span>
+      <span class="req-pill">Req: username, password</span>
+      <span class="endpoint-desc">Login, verify bcrypt, get JWT</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
     </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Field berikut wajib diisi: username, password"</span>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Valid</span>
+            <span class="scenario-response">User data + JWT, includes isAdmin flag</span>
+          </div>
+          <div class="scenario-item unauthorized">
+            <span class="scenario-status">401</span>
+            <span class="scenario-label">Wrong password</span>
+            <span class="scenario-response">"Password salah"</span>
+          </div>
+          <div class="scenario-item unauthorized">
+            <span class="scenario-status">401</span>
+            <span class="scenario-label">Not found</span>
+            <span class="scenario-response">"Username/Email tidak ditemukan"</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Missing field</span>
+            <span class="scenario-response">"Field berikut wajib diisi: username, password"</span>
+          </div>
+        </div>
+        <div class="body-label">Request Body</div>
+        <div class="code-block">{
+  "username": "testuser",    // can also use email
+  "password": "password123"
 }</div>
-
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/login</span>
-      <span class="description">Missing password &rarr; 400</span>
-      <span class="status status-400">400</span>
+      </div>
     </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Field berikut wajib diisi: password"</span>
-}</div>
-
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/reset-password</span>
-      <span class="description">All fields empty &rarr; 400</span>
-      <span class="status status-400">400</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Field berikut wajib diisi: emailOrUsername, newPassword, confirmPassword"</span>
-}</div>
-
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/transaction</span>
-      <span class="description">Empty body &rarr; 400</span>
-      <span class="status status-400">400</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Field berikut wajib diisi: userId, targetAccount, purchaseDetails, billing"</span>
-}</div>
-
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- 6. PASSWORD HASHING -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-path">/api/reset-password</span>
+      <span class="req-pill">Req: emailOrUsername, newPassword, confirmPassword</span>
+      <span class="endpoint-desc">Reset password (bcrypt re-hash)</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">"Password berhasil direset"</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Mismatch</span>
+            <span class="scenario-response">"Konfirmasi password tidak cocok"</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Not found</span>
+            <span class="scenario-response">"Email/Username tidak ditemukan"</span>
+          </div>
+        </div>
+        <div class="body-label">Request Body</div>
+        <div class="code-block">{
+  "emailOrUsername": "testuser",
+  "newPassword":     "newpass456",
+  "confirmPassword": "newpass456"
+}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     USERS
+     ============================================================ -->
+<section class="section" id="users">
   <div class="section-header">
-    Password Hashing &mdash; bcrypt
-    <span class="badge badge-pass">3 passed</span>
+    <div class="section-icon yellow">&#9679;</div>
+    <div class="section-title">Protected User Endpoints</div>
+    <div class="section-subtitle">JWT + ensureSelf &mdash; 6 endpoints</div>
   </div>
-  <div class="section-body">
 
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/login</span>
-      <span class="description">Correct password &rarr; 200</span>
-      <span class="status status-200">200</span>
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge put">PUT</span>
+      <span class="endpoint-path">/api/profile/<span class="param">:userId</span></span>
+      <span class="endpoint-desc">Update profile fields</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
     </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"message"</span>: <span class="string">"Login berhasil"</span>,
-  <span class="key">"data"</span>: { <span class="key">"id"</span>: <span class="string">"..."</span>, <span class="key">"token"</span>: <span class="string">"eyJhbG..."</span> }
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Own profile</span>
+            <span class="scenario-response">Updated user data returned</span>
+          </div>
+          <div class="scenario-item forbidden">
+            <span class="scenario-status">403</span>
+            <span class="scenario-label">Not your profile</span>
+            <span class="scenario-response">"Anda tidak memiliki izin untuk mengakses data ini"</span>
+          </div>
+          <div class="scenario-item unauthorized">
+            <span class="scenario-status">401</span>
+            <span class="scenario-label">No token</span>
+            <span class="scenario-response">"Token tidak valid atau telah berakhir, silakan login kembali"</span>
+          </div>
+        </div>
+        <div class="body-label">Request Body (partial)</div>
+        <div class="code-block">{
+  "username": "newname",          // optional
+  "email":    "new@example.com",  // optional
+  "password": "newpass123",       // optional, gets bcrypt-hashed
+  "birthday": "2000-01-01",       // optional
+  "gender":   "male"              // optional
 }</div>
-
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/login</span>
-      <span class="description">Wrong password &rarr; 401</span>
-      <span class="status status-401">401</span>
+      </div>
     </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Password salah"</span>
-}</div>
-
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/login</span>
-      <span class="description">Login with newly reset password &rarr; 200</span>
-      <span class="status status-200">200</span>
-    </div>
-
   </div>
-  <div class="note">Password hashed with <code>bcrypt.hash(password, 10)</code>. Verified stored hash: <code>$2b$10$4Sjjbah2lwIMLZVKkVCt0umSbqWsE4BynuX98Iugj01Sb2jzFWfG2</code></div>
-</div>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- 7. PROTECTED ENDPOINTS (200 with valid token) -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-path">/api/upload-avatar</span>
+      <span class="req-pill">multipart/form-data</span>
+      <span class="endpoint-desc">Upload avatar image</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Uploaded</span>
+            <span class="scenario-response">"Avatar berhasil diupload"</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">No file</span>
+            <span class="scenario-response">"File gambar diperlukan"</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Wrong type</span>
+            <span class="scenario-response">"Hanya file gambar yang diperbolehkan"</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Too large</span>
+            <span class="scenario-response">"Ukuran gambar terlalu besar. Maksimal 10 MB."</span>
+          </div>
+        </div>
+        <div class="body-label">Form Data</div>
+        <div class="code-block">avatar: &lt;file&gt;     // jpeg, jpg, png, gif, webp (max 10MB)
+userId: "6a37..."</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/points/<span class="param">:userId</span></span>
+      <span class="endpoint-desc">Get point balance</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">{ "points": 3610 }</span>
+          </div>
+          <div class="scenario-item not-found">
+            <span class="scenario-status">404</span>
+            <span class="scenario-label">Not found</span>
+            <span class="scenario-response">"User tidak ditemukan"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/points/config/<span class="param">:userId</span></span>
+      <span class="endpoint-desc">Points tier config</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">{ "tierName": "bronze", "minSpent": 0, "rewardRate": 0.01, "levelNumber": 1 }</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/points/mileage/<span class="param">:userId</span></span>
+      <span class="endpoint-desc">Mileage &amp; tier progress</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">currentTier, nextTier, totalSpent, progress%, amountNeeded</span>
+          </div>
+        </div>
+        <div class="body-label">Sample Response</div>
+        <div class="code-block">{
+  "currentTier":  { "tierName": "bronze", "minSpent": 0, "rewardRate": 0.01 },
+  "nextTier":     { "tierName": "silver", "minSpent": 500000, "rewardRate": 0.02 },
+  "totalSpent":   111000,
+  "progress":     22,
+  "amountNeeded": 389000
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge delete">DELETE</span>
+      <span class="endpoint-path">/api/deleteUser/<span class="param">:userId</span></span>
+      <span class="endpoint-desc">Delete account + transactions</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Deleted</span>
+            <span class="scenario-response">"User berhasil dihapus"</span>
+          </div>
+          <div class="scenario-item forbidden">
+            <span class="scenario-status">403</span>
+            <span class="scenario-label">Not your account</span>
+            <span class="scenario-response">"Anda tidak memiliki izin untuk mengakses data ini"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TRANSACTIONS
+     ============================================================ -->
+<section class="section" id="transactions">
   <div class="section-header">
-    Protected Endpoints &mdash; 200 with Valid JWT
-    <span class="badge badge-pass">8 passed</span>
+    <div class="section-icon blue">&#9679;</div>
+    <div class="section-title">Transaction Endpoints</div>
+    <div class="section-subtitle">JWT + ensureSelf &mdash; 3 endpoints</div>
   </div>
-  <div class="section-body">
 
-    <div class="endpoint-group-title">User Profile &amp; Auth</div>
-    <div class="test-row">
-      <span class="method method-put">PUT</span>
-      <span class="endpoint">/api/profile/:userId</span>
-      <span class="description">Update username</span>
-      <span class="status status-200">200</span>
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-path">/api/transaction</span>
+      <span class="req-pill">Req: userId, targetAccount, purchaseDetails, billing</span>
+      <span class="endpoint-desc">Create top-up transaction</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
     </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"message"</span>: <span class="string">"Profile berhasil diupdate"</span>,
-  <span class="key">"data"</span>: { <span class="key">"id"</span>: <span class="string">"..."</span>, <span class="key">"username"</span>: <span class="string">"testuser_updated"</span>, <span class="key">"isAdmin"</span>: <span class="bool">false</span> }
-}</div>
-
-    <div class="endpoint-group-title">Points &amp; Tier</div>
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/points/:userId</span>
-      <span class="description">Get user points</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"points"</span>: <span class="bool">1110</span>
-}</div>
-
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/points/config/:userId</span>
-      <span class="description">Get tier configuration</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"tierName"</span>: <span class="string">"bronze"</span>,
-    <span class="key">"minSpent"</span>: <span class="bool">0</span>,
-    <span class="key">"rewardRate"</span>: <span class="bool">0.01</span>,
-    <span class="key">"levelNumber"</span>: <span class="bool">1</span>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Success</span>
+            <span class="scenario-response">Invoice: RAST7-{timestamp}-{random}, status: SUCCESS</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Missing fields</span>
+            <span class="scenario-response">"Field berikut wajib diisi: userId, targetAccount, purchaseDetails, billing"</span>
+          </div>
+        </div>
+        <div class="body-label">Request Body</div>
+        <div class="code-block">{
+  "userId": "6a37b0ea1d5b378666a539a9",
+  "targetAccount": {
+    "accountId": "12345",
+    "zoneId":    "6789"
+  },
+  "purchaseDetails": {
+    "gameName":      "Mobile Legends",
+    "itemName":      "Diamonds",
+    "itemQty":       86,
+    "paymentMethod": "Gopay"
+  },
+  "billing": {
+    "basePrice":   100000,
+    "taxAmount":   11000,
+    "pointsUsed":  0,
+    "totalPaid":   111000
   }
 }</div>
-
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/points/mileage/:userId</span>
-      <span class="description">Get mileage progress</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"currentTier"</span>: { <span class="key">"tierName"</span>: <span class="string">"bronze"</span> },
-    <span class="key">"nextTier"</span>: { <span class="key">"tierName"</span>: <span class="string">"silver"</span>, <span class="key">"minSpent"</span>: <span class="bool">500000</span> },
-    <span class="key">"totalSpent"</span>: <span class="bool">111000</span>,
-    <span class="key">"progress"</span>: <span class="bool">22</span>,
-    <span class="key">"amountNeeded"</span>: <span class="bool">389000</span>
-  }
+        <div class="body-label">Response Data</div>
+        <div class="code-block">{
+  "id":             "6a37b36d1d5b378666a539aa",
+  "invoiceId":      "RAST7-1782035309055-ZYQA8",
+  "userId":         "6a37b0ea1d5b378666a539a9",
+  "accountId":      "12345",
+  "zoneId":         "6789",
+  "gameName":       "Mobile Legends",
+  "itemName":       "Diamonds",
+  "itemQty":        86,
+  "paymentMethod":  "Gopay",
+  "basePrice":      100000,
+  "taxAmount":      11000,
+  "discountPoints": 0,
+  "totalPaid":      111000,
+  "status":         "SUCCESS",
+  "waktu":          "21 Jun 2026, 16.48",
+  "createdAt":      "2026-06-21T09:48:29.061Z"
 }</div>
-
-    <div class="endpoint-group-title">Transactions</div>
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/transaction</span>
-      <span class="description">Create transaction</span>
-      <span class="status status-200">200</span>
+      </div>
     </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"message"</span>: <span class="string">"Transaksi berhasil disimpan"</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"invoiceId"</span>: <span class="string">"RAST7-1781865375808-MBJM2"</span>,
-    <span class="key">"status"</span>: <span class="string">"SUCCESS"</span>,
-    <span class="key">"totalPaid"</span>: <span class="bool">111000</span>
-  }
-}</div>
-
-    <div class="test-row">
-      <span class="method method-get">GET</span>
-      <span class="endpoint">/api/history/:userId</span>
-      <span class="description">Get transaction history</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"data"</span>: [
-    {
-      <span class="key">"invoiceId"</span>: <span class="string">"RAST7-1781865375808-MBJM2"</span>,
-      <span class="key">"gameName"</span>: <span class="string">"Mobile Legends"</span>,
-      <span class="key">"totalPaid"</span>: <span class="bool">111000</span>,
-      <span class="key">"status"</span>: <span class="string">"SUCCESS"</span>
-    }
-  ]
-}</div>
-
-    <div class="test-row">
-      <span class="method method-post">POST</span>
-      <span class="endpoint">/api/redeem</span>
-      <span class="description">Redeem voucher (invalid code &rarr; business error, not auth error)</span>
-      <span class="status status-400">400</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">false</span>,
-  <span class="key">"message"</span>: <span class="string">"Kode voucher tidak valid atau sudah tidak aktif."</span>
-}</div>
-
-    <div class="endpoint-group-title">Admin</div>
-    <div class="test-row">
-      <span class="method method-delete">DELETE</span>
-      <span class="endpoint">/api/deleteUser/:userId</span>
-      <span class="description">Admin deleting user</span>
-      <span class="status status-200">200</span>
-    </div>
-    <div class="response-block">{
-  <span class="key">"success"</span>: <span class="bool">true</span>,
-  <span class="key">"message"</span>: <span class="string">"User berhasil dihapus"</span>
-}</div>
-
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- 8. FULL FLOW TRACE -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/history/<span class="param">:userId</span></span>
+      <span class="endpoint-desc">Transaction history</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Has data</span>
+            <span class="scenario-response">Array of transactions (newest first)</span>
+          </div>
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Empty</span>
+            <span class="scenario-response">{ "data": [] }</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-path">/api/redeem</span>
+      <span class="req-pill">Req: userId, code</span>
+      <span class="endpoint-desc">Redeem voucher for points</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Valid code</span>
+            <span class="scenario-response">"Berhasil! +2500 Poin ditambahkan." + newPoints</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Invalid code</span>
+            <span class="scenario-response">"Kode voucher tidak valid atau sudah tidak aktif."</span>
+          </div>
+          <div class="scenario-item client-error">
+            <span class="scenario-status">400</span>
+            <span class="scenario-label">Already used</span>
+            <span class="scenario-response">"Kode voucher sudah digunakan."</span>
+          </div>
+        </div>
+        <div class="body-label">Request Body</div>
+        <div class="code-block">{
+  "userId": "6a37b0ea1d5b378666a539a9",
+  "code":   "SUKSES77"
+}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ADMIN
+     ============================================================ -->
+<section class="section" id="admin">
   <div class="section-header">
-    Full User Flow Trace &mdash; Register &rarr; Delete
+    <div class="section-icon purple">&#9679;</div>
+    <div class="section-title">Admin Endpoints</div>
+    <div class="section-subtitle">JWT + authorizeAdmin &mdash; 1 endpoint</div>
   </div>
-  <div class="section-body" style="padding: 1.2rem; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.8;">
-    <div style="color: var(--text-dim);">
-      <span style="color: var(--green);">1.</span> <span class="method method-post">POST</span> /api/register &rarr; <span style="color: var(--green);">200</span> &mdash; user created, JWT returned<br>
-      <span style="color: var(--green);">2.</span> <span class="method method-post">POST</span> /api/login &rarr; <span style="color: var(--green);">200</span> &mdash; JWT returned, stored in sessionStorage<br>
-      <span style="color: var(--green);">3.</span> <span class="method method-post">POST</span> /api/upload-avatar &rarr; <span style="color: var(--green);">200</span> &mdash; avatar saved (Bearer token)<br>
-      <span style="color: var(--green);">4.</span> <span class="method method-put">PUT</span> /api/profile/:id &rarr; <span style="color: var(--green);">200</span> &mdash; profile updated<br>
-      <span style="color: var(--green);">5.</span> <span class="method method-get">GET</span> /api/points/:id &rarr; <span style="color: var(--green);">200</span> &mdash; points fetched<br>
-      <span style="color: var(--green);">6.</span> <span class="method method-get">GET</span> /api/points/config/:id &rarr; <span style="color: var(--green);">200</span> &mdash; tier config fetched<br>
-      <span style="color: var(--green);">7.</span> <span class="method method-get">GET</span> /api/points/mileage/:id &rarr; <span style="color: var(--green);">200</span> &mdash; mileage progress fetched<br>
-      <span style="color: var(--green);">8.</span> <span class="method method-post">POST</span> /api/transaction &rarr; <span style="color: var(--green);">200</span> &mdash; transaction created (RAST7-...)<br>
-      <span style="color: var(--green);">9.</span> <span class="method method-get">GET</span> /api/history/:id &rarr; <span style="color: var(--green);">200</span> &mdash; history shows new transaction<br>
-      <span style="color: var(--green);">10.</span> <span class="method method-post">POST</span> /api/redeem &rarr; <span style="color: var(--green);">200</span> (valid code) / <span style="color: var(--yellow);">400</span> (invalid code)<br>
-      <span style="color: var(--green);">11.</span> <span class="method method-post">POST</span> /api/reset-password &rarr; <span style="color: var(--green);">200</span> &mdash; password re-hashed<br>
-      <span style="color: var(--green);">12.</span> <span class="method method-post">POST</span> /api/login (new password) &rarr; <span style="color: var(--green);">200</span> &mdash; bcrypt.compare passes<br>
-      <span style="color: var(--green);">13.</span> <span class="method method-delete">DELETE</span> /api/deleteUser/:id &rarr; <span style="color: var(--green);">200</span> &mdash; user deleted
+
+  <div class="endpoint-card">
+    <div class="endpoint-head">
+      <span class="method-badge get">GET</span>
+      <span class="endpoint-path">/api/users</span>
+      <span class="endpoint-desc">List all users (admin)</span>
+      <svg class="expand-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="endpoint-body-inner">
+        <div class="scenario-list">
+          <div class="scenario-item success">
+            <span class="scenario-status">200</span>
+            <span class="scenario-label">Admin user</span>
+            <span class="scenario-response">All users with id, email, username, isAdmin, etc.</span>
+          </div>
+          <div class="scenario-item forbidden">
+            <span class="scenario-status">403</span>
+            <span class="scenario-label">Non-admin</span>
+            <span class="scenario-response">"Anda tidak memiliki izin untuk mengakses data ini"</span>
+          </div>
+          <div class="scenario-item unauthorized">
+            <span class="scenario-status">401</span>
+            <span class="scenario-label">No token</span>
+            <span class="scenario-response">"Token tidak valid atau telah berakhir, silakan login kembali"</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- 9. MIDDLEWARE SUMMARY -->
-<!-- ═══════════════════════════════════════════ -->
-<div class="section">
+<!-- ============================================================
+     MIDDLEWARE
+     ============================================================ -->
+<section class="section" id="middleware">
   <div class="section-header">
-    Middleware Stack &mdash; Route Protection Map
+    <div class="section-icon red">&#9679;</div>
+    <div class="section-title">Auth Middleware</div>
+    <div class="section-subtitle">src/middleware/</div>
   </div>
-  <div class="section-body" style="padding: 1.2rem; font-size: 0.85rem;">
-    <table style="width: 100%; border-collapse: collapse;">
-      <thead>
-        <tr style="border-bottom: 1px solid var(--border); color: var(--text-dim); text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
-          <th style="padding: 0.5rem 0.75rem;">Route</th>
-          <th style="padding: 0.5rem 0.75rem;">Method</th>
-          <th style="padding: 0.5rem 0.75rem;">Middleware</th>
-        </tr>
-      </thead>
-      <tbody style="font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.8rem;">
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/test</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/register</td>
-          <td style="padding: 0.5rem 0.75rem;">POST</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--blue);">validateRegister</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/login</td>
-          <td style="padding: 0.5rem 0.75rem;">POST</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--blue);">validateLogin</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/reset-password</td>
-          <td style="padding: 0.5rem 0.75rem;">POST</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--blue);">validateResetPassword</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/games</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/games/:slug</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/payment-methods</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/avatar/:userId</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/leaderboard</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--green);">Public</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/profile/:userId</td>
-          <td style="padding: 0.5rem 0.75rem;">PUT</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/upload-avatar</td>
-          <td style="padding: 0.5rem 0.75rem;">POST</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf + multer</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/points/:userId</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/points/config/:userId</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/points/mileage/:userId</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/transaction</td>
-          <td style="padding: 0.5rem 0.75rem;">POST</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf + validateTransaction</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/history/:userId</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/redeem</td>
-          <td style="padding: 0.5rem 0.75rem;">POST</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
-        </tr>
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 0.5rem 0.75rem;">/api/deleteUser/:userId</td>
-          <td style="padding: 0.5rem 0.75rem;">DELETE</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--yellow);">authenticate + ensureSelf</td>
-        </tr>
-        <tr>
-          <td style="padding: 0.5rem 0.75rem;">/api/users</td>
-          <td style="padding: 0.5rem 0.75rem;">GET</td>
-          <td style="padding: 0.5rem 0.75rem; color: var(--purple);">authenticate + authorizeAdmin</td>
-        </tr>
-      </tbody>
-    </table>
+
+  <div class="middleware-grid">
+    <div class="middleware-card">
+      <div class="middleware-name">authenticate <span class="src">auth.js</span></div>
+      <div class="middleware-desc">
+        Parses <code>Authorization: Bearer &lt;token&gt;</code> header. Verifies JWT with <code>jsonwebtoken</code>. On success, attaches <code>req.user = { userId, username, isAdmin }</code>. Returns <strong>401</strong> if missing, expired, or invalid — all cases return the same message.
+      </div>
+    </div>
+    <div class="middleware-card">
+      <div class="middleware-name">ensureSelf <span class="src">auth.js</span></div>
+      <div class="middleware-desc">
+        Ownership guard. Compares <code>req.user.userId</code> from JWT against <code>req.params.userId</code> or <code>req.body.userId</code>. Allows access on match, or if <code>req.user.isAdmin === true</code>. Returns <strong>403</strong> on mismatch. All protected user/transaction routes use this.
+      </div>
+    </div>
+    <div class="middleware-card">
+      <div class="middleware-name">authorizeAdmin <span class="src">auth.js</span></div>
+      <div class="middleware-desc">
+        Role guard. Checks <code>req.user.isAdmin === true</code>. Must run after <code>authenticate</code>. Returns <strong>403</strong> if user is not an admin. Only applied to <code>GET /api/users</code>.
+      </div>
+    </div>
+    <div class="middleware-card">
+      <div class="middleware-name">validateBody <span class="src">validate.js</span></div>
+      <div class="middleware-desc">
+        Generic validator factory. Checks that specified fields exist and are not null/empty in <code>req.body</code>. Returns <strong>400</strong> with a list of missing fields. Pre-built validators: <code>validateRegister</code>, <code>validateLogin</code>, <code>validateResetPassword</code>, <code>validateTransaction</code>.
+      </div>
+    </div>
   </div>
-  <div class="note">
-    <code>requestLogger</code> is applied globally via <code>app.use(requestLogger)</code> before all routes.
-    All protected routes return <code>{ "success": false, "message": "..." }</code> in Bahasa Indonesia on error.
+
+  <div style="margin-top: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--text-secondary); box-shadow: var(--shadow-sm);">
+    <strong style="color: var(--text);">Global middleware:</strong>
+    <code>requestLogger</code> logs every request before routing.
+    <code>handleMulterError</code> catches file upload errors (size, type).
+    All error responses use <code>{ "success": false, "message": "..." }</code>.
   </div>
+</section>
+
+<!-- ============================================================
+     USER FLOW
+     ============================================================ -->
+<section class="section" id="flow">
+  <div class="section-header">
+    <div class="section-icon yellow">&#9679;</div>
+    <div class="section-title">Full User Flow</div>
+    <div class="section-subtitle">Register &rarr; Delete</div>
+  </div>
+
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm);">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-num">1</div>
+        <div class="timeline-content">
+          <span class="method-badge post">POST</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/register</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">User created, JWT returned</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">2</div>
+        <div class="timeline-content">
+          <span class="method-badge post">POST</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/login</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">JWT returned, store in sessionStorage</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">3</div>
+        <div class="timeline-content">
+          <span class="method-badge post">POST</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/upload-avatar</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Avatar saved (multipart, Bearer token)</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">4</div>
+        <div class="timeline-content">
+          <span class="method-badge put">PUT</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/profile/:id</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Profile fields updated</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">5</div>
+        <div class="timeline-content">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/points/:id</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Points balance fetched</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">6</div>
+        <div class="timeline-content">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/points/config/:id</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Tier config: bronze / silver / gold</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">7</div>
+        <div class="timeline-content">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/points/mileage/:id</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Progress toward next tier</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">8</div>
+        <div class="timeline-content">
+          <span class="method-badge post">POST</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/transaction</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Top-up: RAST7-{ts}-{rand}</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">9</div>
+        <div class="timeline-content">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/history/:id</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">History shows new transaction</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">10</div>
+        <div class="timeline-content">
+          <span class="method-badge post">POST</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/redeem</span>
+          <span class="arrow">&rarr;</span>
+          <span style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Valid voucher &rarr; +points</span>
+          <span style="color: var(--text-muted);">/</span>
+          <span style="color: var(--yellow); font-weight:600;">400</span>
+          <span class="desc">Invalid / used voucher</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">11</div>
+        <div class="timeline-content">
+          <span class="method-badge post">POST</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/reset-password</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Password re-hashed with bcrypt</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">12</div>
+        <div class="timeline-content">
+          <span class="method-badge post">POST</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/login</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">Login with new password &mdash; bcrypt.compare passes</span>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-num">13</div>
+        <div class="timeline-content">
+          <span class="method-badge delete">DELETE</span>
+          <span class="endpoint-path" style="font-size:0.82rem">/api/deleteUser/:id</span>
+          <span class="arrow">&rarr;</span>
+          <span class="status" style="color: var(--green); font-weight:700;">200</span>
+          <span class="desc">User + all transactions deleted</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 </div>
 
-<footer>
-  Rast7 API Test Report &mdash; Generated 2026-06-19 &mdash; bcrypt + JWT + Express middleware
+<footer class="footer">
+  Rast7 API &mdash; <a href="http://localhost:3000/api-docs" target="_blank">Swagger UI</a> &mdash; Express &middot; Prisma &middot; MongoDB
 </footer>
 
-</div>
+<script>
+  document.querySelectorAll('.endpoint-head').forEach(head => {
+    head.addEventListener('click', () => {
+      const card = head.closest('.endpoint-card');
+      card.classList.toggle('expanded');
+    });
+  });
+</script>
+
 </body>
 </html>
