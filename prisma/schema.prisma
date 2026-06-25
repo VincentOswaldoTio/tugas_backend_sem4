@@ -175,3 +175,35 @@ model point_configs {
   rewardRate  Float
   levelNumber Int     @unique
 }
+
+// ==========================================
+// 8. PROMOS
+// For dynamic campaign list on Promo Page
+// ==========================================
+model promos {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  category     String   // e.g. "Weekly Diamond Pass"
+  gameName     String   // e.g. "Mobile Legends"
+  periodText   String   // e.g. "1 Oktober–31 Desember 2025"
+  timeText     String?  // e.g. "(15.00-18.00)"
+  cashbackText String   // e.g. "Cashback 100% (maks. Rp27.195)"
+  notes        String?  // e.g. "Promo hanya berlaku untuk pengguna RAST Plus"
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+// ==========================================
+// 9. PROMO BANNERS / CONFIGS
+// For page-level header and config on Promo Page
+// ==========================================
+model promo_banners {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String   // "Promo Games: Cashback hingga..."
+  periodText   String   // "Periode Promo 1-30 Okt 2025"
+  regionText   String   @default("Seluruh Indonesia")
+  categoryText String   @default("Games")
+  subheading   String   // "Promo Mobile Legends di RAST Games..."
+  image        Bytes?   // Page banner image binary
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}

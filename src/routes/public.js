@@ -290,4 +290,101 @@ router.get('/carousel-media/:id', async (req, res) => {
   }
 });
 
+/**
+ * Serve page promo banner image
+ */
+router.get('/promo-media/banner/:id', async (req, res) => {
+  try {
+    const banner = await req.prisma.promo_banners.findUnique({
+      where: { id: req.params.id },
+      select: { image: true }
+    });
+    if (!banner || !banner.image) {
+      return res.status(404).json({ success: false, message: "Gambar banner tidak ditemukan" });
+    }
+
+    const buffer = Buffer.isBuffer(banner.image) ? banner.image : Buffer.from(banner.image);
+    const sig = buffer.slice(0, 4).toString('hex');
+    const mime = sig.startsWith('8950') ? 'image/png'
+      : sig.startsWith('ffd8') ? 'image/jpeg'
+      : sig.startsWith('4746') ? 'image/gif'
+      : sig.startsWith('5249') ? 'image/webp'
+      : 'image/png';
+
+    res.set('Content-Type', mime);
+    res.set('Cache-Control', 'no-cache, must-revalidate');
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * @openapi
+ * /api/promo-page:
+ *   get:
+ *     summary: Get page banner config
+ *     tags: [Public]
+ *     responses:
+ *       200:
+ *         description: Active banner config
+ */
+router.get('/promo-page', async (req, res) => {
+  try {
+    const banner = await req.prisma.promo_banners.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    if (!banner) {
+      return res.json({ success: true, data: null });
+    }
+    const ts = Date.now();
+    const data = {
+      id: banner.id,
+      title: banner.title,
+      periodText: banner.periodText,
+      regionText: banner.regionText,
+      categoryText: banner.categoryText,
+      subheading: banner.subheading,
+      isActive: banner.isActive,
+      imageUrl: banner.image ? `/api/promo-media/banner/${banner.id}?v=${ts}` : null
+    };
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * @openapi
+ * /api/promos:
+ *   get:
+ *     summary: Get all active promotions
+ *     tags: [Public]
+ *     responses:
+ *       200:
+ *         description: List of active promotions
+ */
+router.get('/promos', async (req, res) => {
+  try {
+    const promos = await req.prisma.promos.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' }
+    });
+    const data = promos.map(p => ({
+      id: p.id,
+      category: p.category,
+      gameName: p.gameName,
+      periodText: p.periodText,
+      timeText: p.timeText,
+      cashbackText: p.cashbackText,
+      notes: p.notes,
+      isActive: p.isActive
+    }));
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 export default router;

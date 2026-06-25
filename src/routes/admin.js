@@ -702,4 +702,176 @@ router.delete('/admin/carousel-slides/:id', async (req, res) => {
   }
 });
 
+// ==============================
+// PROMOS CRUD (admin)
+// ==============================
+
+router.get('/admin/promos', async (req, res) => {
+  try {
+    const promos = await req.prisma.promos.findMany({
+      orderBy: { createdAt: 'asc' }
+    });
+    const data = promos.map(p => ({
+      id: p.id,
+      category: p.category,
+      gameName: p.gameName,
+      periodText: p.periodText,
+      timeText: p.timeText,
+      cashbackText: p.cashbackText,
+      notes: p.notes,
+      isActive: p.isActive,
+      createdAt: p.createdAt
+    }));
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/admin/promos', async (req, res) => {
+  try {
+    const { category, gameName, periodText, timeText, cashbackText, notes, isActive } = req.body;
+    if (!category || !gameName || !periodText || !cashbackText) {
+      return res.status(400).json({ success: false, message: "Kategori, nama game, periode, dan cashback wajib diisi" });
+    }
+    const promo = await req.prisma.promos.create({
+      data: {
+        category,
+        gameName,
+        periodText,
+        timeText: timeText || '',
+        cashbackText,
+        notes: notes || '-',
+        isActive: isActive !== 'false'
+      }
+    });
+    res.status(201).json({ success: true, message: "Promo berhasil ditambahkan", data: { id: promo.id } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put('/admin/promos/:id', async (req, res) => {
+  try {
+    const promo = await req.prisma.promos.findUnique({ where: { id: req.params.id } });
+    if (!promo) return res.status(404).json({ success: false, message: "Promo tidak ditemukan" });
+
+    const updateData = {};
+    if (req.body.category !== undefined) updateData.category = req.body.category;
+    if (req.body.gameName !== undefined) updateData.gameName = req.body.gameName;
+    if (req.body.periodText !== undefined) updateData.periodText = req.body.periodText;
+    if (req.body.timeText !== undefined) updateData.timeText = req.body.timeText;
+    if (req.body.cashbackText !== undefined) updateData.cashbackText = req.body.cashbackText;
+    if (req.body.notes !== undefined) updateData.notes = req.body.notes;
+    if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive !== 'false';
+
+    await req.prisma.promos.update({
+      where: { id: req.params.id },
+      data: updateData
+    });
+
+    res.json({ success: true, message: "Promo berhasil diupdate" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/admin/promos/:id', async (req, res) => {
+  try {
+    await req.prisma.promos.delete({ where: { id: req.params.id } });
+    res.json({ success: true, message: "Promo berhasil dihapus" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ==============================
+// PROMO BANNERS CRUD (admin)
+// ==============================
+
+router.get('/admin/promo-banners', async (req, res) => {
+  try {
+    const banners = await req.prisma.promo_banners.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    const data = banners.map(b => ({
+      id: b.id,
+      title: b.title,
+      periodText: b.periodText,
+      regionText: b.regionText,
+      categoryText: b.categoryText,
+      subheading: b.subheading,
+      isActive: b.isActive,
+      hasImage: !!b.image,
+      imageUrl: b.image ? `/api/promo-media/banner/${b.id}` : null,
+      createdAt: b.createdAt
+    }));
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/admin/promo-banners', upload.fields([
+  { name: 'image', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const { title, periodText, regionText, categoryText, subheading, isActive } = req.body;
+    if (!title || !periodText || !subheading) {
+      return res.status(400).json({ success: false, message: "Judul, periode, dan sub-header wajib diisi" });
+    }
+    const banner = await req.prisma.promo_banners.create({
+      data: {
+        title,
+        periodText,
+        regionText: regionText || 'Seluruh Indonesia',
+        categoryText: categoryText || 'Games',
+        subheading,
+        image: req.files?.image?.[0]?.buffer || undefined,
+        isActive: isActive !== 'false'
+      }
+    });
+    res.status(201).json({ success: true, message: "Banner promo berhasil ditambahkan", data: { id: banner.id } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put('/admin/promo-banners/:id', upload.fields([
+  { name: 'image', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const banner = await req.prisma.promo_banners.findUnique({ where: { id: req.params.id } });
+    if (!banner) return res.status(404).json({ success: false, message: "Banner promo tidak ditemukan" });
+
+    const updateData = {};
+    if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.periodText !== undefined) updateData.periodText = req.body.periodText;
+    if (req.body.regionText !== undefined) updateData.regionText = req.body.regionText;
+    if (req.body.categoryText !== undefined) updateData.categoryText = req.body.categoryText;
+    if (req.body.subheading !== undefined) updateData.subheading = req.body.subheading;
+    if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive !== 'false';
+    if (req.files?.image?.[0]?.buffer) updateData.image = req.files.image[0].buffer;
+    if (req.body.removeImage === 'true') updateData.image = null;
+
+    await req.prisma.promo_banners.update({
+      where: { id: req.params.id },
+      data: updateData
+    });
+
+    res.json({ success: true, message: "Banner promo berhasil diupdate" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/admin/promo-banners/:id', async (req, res) => {
+  try {
+    await req.prisma.promo_banners.delete({ where: { id: req.params.id } });
+    res.json({ success: true, message: "Banner promo berhasil dihapus" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 export default router;
