@@ -1,34 +1,150 @@
+/* =============================================================
+   PROFILE — Cyber-Gamer Theme (RAST-7 Brand)
+   Glassmorphism cards, neon accents, Audiowide headers
+   ============================================================= */
 
-/* MAIN */
+/* ─── Main Layout ─── */
 .profile-main {
+  position: relative;
+  z-index: 2;
+  padding-top: 1px;
+  padding-inline: 3%;
+  background: transparent;
+  padding-bottom: 100px;
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 40px 20px;
-  position: relative;
-  z-index: 2;
+  align-items: flex-start;
 }
 
-/* CONTAINER */
 .profile-container {
   width: 100%;
   max-width: 900px;
-  background: rgba(26, 26, 46, 0.92);
-  border-radius: 20px;
+  background: rgba(30, 30, 54, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 242, 255, 0.12);
+  border-radius: 16px;
+  margin: 50px auto;
   padding: 40px;
-  box-shadow: 0 0 50px rgba(0, 242, 255, 0.15);
-  backdrop-filter: blur(14px);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.45), 0 0 25px rgba(0, 242, 255, 0.05);
 }
 
-/* HEADER */
+/* ─── Not Logged In State ─── */
+.login-required-notification {
+  text-align: center;
+  padding: 60px 40px;
+}
+
+.notification-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 25px;
+  background: rgba(0, 242, 255, 0.08);
+  border: 1px solid rgba(0, 242, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-icon img {
+  width: 40px;
+  height: 40px;
+  filter: invert(66%) sepia(93%) saturate(434%) hue-rotate(146deg) brightness(102%) contrast(101%);
+}
+
+.login-required-notification h2 {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(0, 242, 255, 0.35);
+}
+
+.login-required-notification p {
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 30px;
+  font-size: 1.05rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.auth-btn {
+  padding: 12px 35px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.login-btn {
+  background: linear-gradient(135deg, #00f2ff, #007bff);
+  color: white;
+  border: none;
+  box-shadow: 0 0 15px rgba(0, 242, 255, 0.25);
+}
+
+.register-btn {
+  background: transparent;
+  color: #00f2ff;
+  border: 2px solid #00f2ff;
+}
+
+.login-btn:hover {
+  box-shadow: 0 0 25px rgba(0, 242, 255, 0.45);
+  transform: translateY(-2px);
+}
+
+.register-btn:hover {
+  background: rgba(0, 242, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.login-required-notification a {
+  color: #00f2ff;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ─── Success Alert ─── */
+.alert-success {
+  background: rgba(0, 242, 255, 0.08);
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  color: #00f2ff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  animation: alertFadeIn 0.3s ease;
+}
+
+@keyframes alertFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Profile Header ─── */
 .profile-header {
   display: flex;
   align-items: flex-start;
   gap: 30px;
   margin-bottom: 40px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid rgba(0, 242, 255, 0.08);
 }
 
+/* Avatar */
 .avatar-wrapper {
   position: relative;
   width: 140px;
@@ -43,359 +159,39 @@
   object-fit: cover;
   border: 3px solid #00f2ff;
   box-shadow: 0 0 25px rgba(0, 242, 255, 0.4);
+  transition: box-shadow 0.3s ease;
 }
 
-/* LEVEL */
+.avatar-wrapper:hover .profile-avatar {
+  box-shadow: 0 0 40px rgba(0, 242, 255, 0.6);
+}
+
+/* ─── Level Badge ─── */
 .level-badge {
   position: absolute;
   bottom: 5px;
   right: 5px;
-  background: radial-gradient(circle, #7000ff, #000);
-  color: white;
   width: 42px;
   height: 42px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: bold;
-  box-shadow: 0 0 15px #7000ff;
-}
-
-/* INFO */
-.profile-info {
-  flex: 1;
-}
-
-.profile-name {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2.2rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.edit-icon img {
-  width: 26px;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.edit-icon img:hover {
-  opacity: 1;
-}
-
-.profile-details {
-  margin-top: 15px;
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  gap: 15px;
-  font-size: 0.9rem;
-}
-
-.profile-details span {
-  color: #00f2ff;
-}
-
-.security-link {
-  display: inline-block;
-  margin-top: 20px;
-  color: #00f2ff;
-  text-decoration: none;
-}
-
-.security-link:hover {
-  text-decoration: underline;
-}
-
-/* ACCOUNT SETTINGS */
-.account-settings h2 {
-  font-family: 'Orbitron', sans-serif;
-  margin-bottom: 20px;
-}
-
-.setting-item {
-  display: grid;
-  grid-template-columns: 120px 1fr auto;
-  gap: 15px;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.setting-item label {
-  color: #aaa;
-}
-
-.setting-item input {
-  padding: 10px;
-  background: #000;
-  border: 1px solid #444;
-  color: white;
-  border-radius: 6px;
-}
-
-.setting-item button {
-  padding: 8px 14px;
-  background: linear-gradient(90deg, #00f2ff, #ff0055);
-  border: none;
-  color: white;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.setting-item button:hover {
-  filter: brightness(1.2);
-}
-
-.setting-item.danger {
-  justify-content: flex-end;
-}
-
-.delete-btn {
-  background: transparent;
-  border: 1px solid #ff0055;
-  color: #ff0055;
-}
-
-.delete-btn:hover {
-  background: #ff0055;
-  color: white;
-}
-
-/* NOTIFICATION STYLES */
-.login-required-notification {
-  text-align: center;
-  padding: 60px 40px;
-}
-
-.notification-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 25px;
-  background: rgba(0, 242, 255, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.notification-icon img {
-  width: 40px;
-  height: 40px;
-  filter: invert(66%) sepia(93%) saturate(434%) hue-rotate(146deg) brightness(102%) contrast(101%);
-}
-
-/* login required */
-.login-required-container {
-  max-width: 500px;
-  margin: 80px auto;
-  background: rgba(30, 9, 63, 0.9);
-  border-radius: 12px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-}
-
-.login-required-notification h2 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 2rem;
-  margin-bottom: 15px;
-  color: #00f2ff;
-}
-
-.login-required-notification p {
-  color: #aaa;
-  margin-bottom: 30px;
-  font-size: 1.1rem;
-}
-
-.auth-buttons {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  margin-bottom: 30px;
-}
-
-.auth-btn {
-  padding: 12px 35px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: bold;
-  font-family: 'Orbitron', sans-serif;
-  transition: all 0.3s ease;
-}
-
-.login-btn {
-  background: linear-gradient(90deg, #00f2ff, #0088ff);
-  color: white;
-  border: none;
-}
-
-.register-btn {
-  background: transparent;
-  color: #00f2ff;
-  border: 2px solid #00f2ff;
-}
-
-.login-btn:hover {
-  box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
-  transform: translateY(-2px);
-}
-
-.register-btn:hover {
-  background: rgba(0, 242, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-.guest-note {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.guest-note a {
-  color: #00f2ff;
-  text-decoration: none;
-}
-
-.guest-note a:hover {
-  text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .auth-buttons {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .auth-btn {
-    width: 100%;
-    text-align: center;
-  }
-}
-
-/* Tambahkan di Profile.css */
-
-/* Edit mode styling */
-.edit-mode-container {
-  grid-column: 2 / span 2;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.edit-mode-container input {
-  width: 100%;
-  padding: 10px;
-  background: #111;
-  border: 1px solid #444;
-  color: white;
-  border-radius: 6px;
-}
-
-.edit-mode-container input.error {
-  border-color: #ff0055;
-  background: rgba(255, 0, 85, 0.1);
-}
-
-.error-message {
-  color: #ff0055;
+  font-family: 'Audiowide', sans-serif;
   font-size: 0.85rem;
-  margin-top: 5px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #7000ff, #3a0078);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(112, 0, 255, 0.6);
+  animation: badgePulse 3s ease-in-out infinite;
 }
 
-.edit-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(112, 0, 255, 0.4); }
+  50%      { box-shadow: 0 0 25px rgba(112, 0, 255, 0.8); }
 }
 
-.edit-buttons button {
-  padding: 8px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.edit-buttons button:first-child {
-  background: linear-gradient(90deg, #00f2ff, #0088ff);
-  border: none;
-  color: white;
-}
-
-.edit-buttons .cancel-btn {
-  background: transparent;
-  border: 1px solid #666;
-  color: #aaa;
-}
-
-.edit-buttons button:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
-.edit-buttons button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Inline edit styling */
-.inline-edit-input,
-.inline-edit-select {
-  background: #111;
-  border: 1px solid #444;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  margin-left: 10px;
-}
-
-.inline-edit-select {
-  margin-left: 10px;
-  cursor: pointer;
-}
-
-.inline-save-btn,
-.inline-cancel-btn {
-  margin-left: 10px;
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.inline-save-btn {
-  background: #00f2ff;
-  color: black;
-  border: none;
-}
-
-.inline-cancel-btn {
-  background: transparent;
-  color: #aaa;
-  border: 1px solid #666;
-}
-
-.inline-edit-icon {
-  width: 16px;
-  height: 16px;
-  margin-left: 10px;
-  cursor: pointer;
-  opacity: 0.7;
-  vertical-align: middle;
-}
-
-.inline-edit-icon:hover {
-  opacity: 1;
-}
-
-/* Avatar upload */
-.avatar-wrapper {
-  position: relative;
-  width: 140px;
-  height: 140px;
-  flex-shrink: 0;
-}
-
+/* ─── Avatar Upload ─── */
 .avatar-upload {
   position: absolute;
   bottom: 10px;
@@ -411,8 +207,8 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 2px solid white;
-  transition: all 0.3s;
+  border: 2px solid #fff;
+  transition: all 0.3s ease;
 }
 
 .avatar-upload-label:hover {
@@ -426,72 +222,515 @@
   filter: brightness(0) invert(1);
 }
 
-/* Profile details edit */
-.profile-details span {
-  display: inline-flex;
+/* ─── Player Info ─── */
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 2rem;
+  color: #fff;
+  display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
+  margin: 0 0 6px;
+  text-shadow: 0 0 15px rgba(0, 242, 255, 0.25);
 }
 
-.profile-details .edit-icon {
+.edit-icon img {
+  width: 26px;
   cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.3s;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
 }
 
-.profile-details .edit-icon:hover {
+.edit-icon img:hover {
   opacity: 1;
 }
 
-/* Success alert */
-.alert-success {
-  background: rgba(0, 242, 255, 0.1);
-  border: 1px solid rgba(0, 242, 255, 0.3);
-  color: #00f2ff;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  animation: fadeIn 0.3s;
+/* ─── Profile Details Grid ─── */
+.profile-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.profile-details > p {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* MILEAGE PROGRESS */
-.mileage-section {
+.profile-details > p > span {
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Inline Edit ─── */
+.inline-edit-input,
+.inline-edit-select {
+  background: rgba(15, 15, 30, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  transition: all 0.3s ease;
+}
+
+.inline-edit-input:focus,
+.inline-edit-select:focus {
+  border-color: #00f2ff;
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+}
+
+.inline-edit-select option {
   background: #1a1a2e;
+  color: #e2e8f0;
+}
+
+.inline-save-btn {
+  padding: 4px 14px;
+  background: linear-gradient(135deg, #00f2ff, #007bff);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inline-save-btn:hover {
+  box-shadow: 0 0 12px rgba(0, 242, 255, 0.35);
+}
+
+.inline-cancel-btn {
+  padding: 4px 14px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inline-cancel-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.inline-edit-icon {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  vertical-align: middle;
+}
+
+.inline-edit-icon:hover {
+  opacity: 1;
+}
+
+/* ─── Logout Button ─── */
+.logout-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 85, 85, 0.4) !important;
+  color: #ff5555 !important;
+  padding: 6px 20px !important;
+  border-radius: 8px !important;
+  cursor: pointer;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  margin-top: 14px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 85, 85, 0.12) !important;
+  box-shadow: 0 0 15px rgba(255, 85, 85, 0.2);
+  transform: translateY(-1px);
+}
+
+/* ─── Mileage / Tier Progress ─── */
+.mileage-section {
+  margin-top: 20px;
   padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  background: rgba(10, 10, 30, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
 }
 
 .mileage-section h3 {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 0.95rem;
   color: #fff;
-  margin-bottom: 15px;
+  margin: 0 0 14px;
+  letter-spacing: 0.03em;
 }
 
 .current-tier {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.current-tier strong {
   color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
 }
 
 .reward-rate {
-  background: #0d6efd;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  display: inline-block;
+  background: rgba(0, 242, 255, 0.1);
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  color: #00f2ff;
+  padding: 3px 14px;
+  border-radius: 99px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Progress bar (Bootstrap override) */
+.mileage-section .progress {
+  height: 22px !important;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.mileage-section .progress-bar {
+  background: linear-gradient(90deg, #00f2ff, #007bff);
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  color: #0a0a1e;
+  line-height: 22px;
+  transition: width 0.6s ease;
 }
 
 .mileage-info {
-  color: #aaa;
-  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
 .mileage-info small {
+  font-size: inherit;
+}
+
+.mileage-section .alert-success {
+  margin-top: 8px;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+/* ─── Account Settings Section ─── */
+.account-settings {
+  margin-top: 10px;
+}
+
+.account-settings h2 {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 1.2rem;
+  color: #fff;
+  margin: 0 0 24px;
+  text-shadow: 0 0 10px rgba(0, 242, 255, 0.15);
+  border-left: 4px solid #ff0055;
+  padding-left: 14px;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Setting Item ─── */
+.setting-item {
+  display: grid;
+  grid-template-columns: 130px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px;
+  margin-bottom: 8px;
+  background: rgba(10, 10, 30, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.setting-item:hover {
+  border-color: rgba(0, 242, 255, 0.08);
+  background: rgba(10, 10, 30, 0.35);
+}
+
+.setting-item label {
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.setting-item input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(15, 15, 30, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.setting-item input:focus {
+  border-color: #00f2ff;
+  outline: none;
+  box-shadow: 0 0 12px rgba(0, 242, 255, 0.3);
+}
+
+.setting-item input[readOnly] {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.setting-item > button:not(.cancel-btn) {
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #00f2ff, #007bff);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.15);
+}
+
+.setting-item > button:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(0, 242, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.setting-item > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Edit Mode Inside Settings ─── */
+.edit-mode-container {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-mode-container input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(15, 15, 30, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.edit-mode-container input:focus {
+  border-color: #00f2ff;
+  outline: none;
+  box-shadow: 0 0 12px rgba(0, 242, 255, 0.3);
+}
+
+.edit-mode-container input.error {
+  border-color: #ff0055;
+  background: rgba(255, 0, 85, 0.06);
+}
+
+.error-message {
+  color: #ff0055;
+  font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
+  margin-top: 2px;
+  text-shadow: 0 0 8px rgba(255, 0, 85, 0.3);
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.edit-buttons button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
+}
+
+.edit-buttons button:first-child {
+  background: linear-gradient(135deg, #00f2ff, #007bff);
+  border: none;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.15);
+}
+
+.edit-buttons button:first-child:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(0, 242, 255, 0.35);
+}
+
+.edit-buttons .cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.edit-buttons .cancel-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.edit-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Delete Account ─── */
+.setting-item.danger {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px;
+  margin-top: 20px;
+  background: transparent;
+  border: none;
+}
+
+.delete-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 0, 85, 0.4) !important;
+  color: #ff0055 !important;
+  padding: 10px 28px !important;
+  border-radius: 8px !important;
+  cursor: pointer;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  box-shadow: none !important;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: rgba(255, 0, 85, 0.12) !important;
+  box-shadow: 0 0 18px rgba(255, 0, 85, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 24px 18px;
+    margin: 30px auto;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .profile-name {
+    font-size: 1.6rem;
+    justify-content: center;
+  }
+
+  .profile-details {
+    justify-content: center;
+  }
+
+  .auth-buttons {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .auth-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .setting-item {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .setting-item > button {
+    justify-self: start;
+  }
+
+  .edit-mode-container {
+    grid-column: 1;
+  }
+
+  .setting-item.danger {
+    justify-content: center;
+  }
+
+  .current-tier {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 18px 14px;
+  }
+
+  .profile-name {
+    font-size: 1.3rem;
+  }
+
+  .login-required-notification {
+    padding: 40px 20px;
+  }
 }

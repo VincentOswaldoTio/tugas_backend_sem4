@@ -666,14 +666,6 @@ const Profile = () => {
                 <button
                   className="logout-btn"
                   onClick={handleLogout}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #ff5555',
-                    color: '#ff5555',
-                    padding: '5px 15px',
-                    borderRadius: '6px',
-                    cursor: 'pointer'
-                  }}
                 >
                   Logout
                 </button>
