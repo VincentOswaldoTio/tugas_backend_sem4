@@ -95,6 +95,7 @@ const CACHE_KEYS = {
   PROMOS: 'admin_cache_promos',
   BANNERS: 'admin_cache_banners',
   CONTACT: 'admin_cache_contact',
+  VOUCHERS: 'admin_cache_vouchers',
   ITEMS: (gameId) => `admin_cache_items_${gameId}`
 };
 
@@ -137,14 +138,15 @@ export default function Admin() {
   const [carouselSlides, setCarouselSlides] = useState(() => getCache(CACHE_KEYS.SLIDES) || []);
   const [promos, setPromos] = useState(() => getCache(CACHE_KEYS.PROMOS) || []);
   const [loading, setLoading] = useState(() => {
-    const hasCached = 
+    const hasCached =
       sessionStorage.getItem('admin_cache_games') &&
       sessionStorage.getItem('admin_cache_users') &&
       sessionStorage.getItem('admin_cache_categories') &&
       sessionStorage.getItem('admin_cache_slides') &&
       sessionStorage.getItem('admin_cache_promos') &&
       sessionStorage.getItem('admin_cache_banners') &&
-      sessionStorage.getItem('admin_cache_contact');
+      sessionStorage.getItem('admin_cache_contact') &&
+      sessionStorage.getItem('admin_cache_vouchers');
     return !hasCached;
   });
 
@@ -189,9 +191,14 @@ export default function Admin() {
   const [bannerHasImage, setBannerHasImage] = useState(false);
   const [removeBannerImage, setRemoveBannerImage] = useState(false);
 
+  const emptyVoucherForm = { code: '', rewardValue: '', quota: '100', rewardType: 'points', isActive: 'true', validUntil: '' };
+  const [voucherForm, setVoucherForm] = useState(emptyVoucherForm);
+  const [voucherEdit, setVoucherEdit] = useState(null);
+
   const [promoBanners, setPromoBanners] = useState(() => getCache(CACHE_KEYS.BANNERS) || []);
   const [promoSubTab, setPromoSubTab] = useState('rows'); // 'rows' or 'banners'
   const [contactMessages, setContactMessages] = useState(() => getCache(CACHE_KEYS.CONTACT) || []);
+  const [vouchers, setVouchers] = useState(() => getCache(CACHE_KEYS.VOUCHERS) || []);
 
   // Refresh key to bust image cache after updates
   const [refreshKey, setRefreshKey] = useState(0);
@@ -308,6 +315,21 @@ export default function Admin() {
     }
   }, []);
 
+  const loadVouchers = useCallback(async () => {
+    try {
+      const token = getAuthToken();
+      const res = await fetch('/api/admin/vouchers', { headers: { Authorization: `Bearer ${token}` } });
+      const json = await res.json();
+      if (json.success) {
+        setVouchers(json.data);
+        setCache(CACHE_KEYS.VOUCHERS, json.data);
+      }
+    } catch {
+      const cached = getCache(CACHE_KEYS.VOUCHERS);
+      if (!cached) showToast('Gagal memuat voucher', 'error');
+    }
+  }, []);
+
   const loadItems = useCallback(async (gameId) => {
     if (!gameId) {
       setTimeout(() => setGameItems([]), 0);
@@ -343,11 +365,12 @@ export default function Admin() {
         loadCarouselSlides(),
         loadPromos(),
         loadPromoBanners(),
-        loadContactMessages()
+        loadContactMessages(),
+        loadVouchers()
       ]).finally(() => setLoading(false));
     }, 0);
     return () => clearTimeout(timer);
-  }, [userData, loadGames, loadUsers, loadCategories, loadCarouselSlides, loadPromos, loadPromoBanners, loadContactMessages]);
+  }, [userData, loadGames, loadUsers, loadCategories, loadCarouselSlides, loadPromos, loadPromoBanners, loadContactMessages, loadVouchers]);
 
   useEffect(() => {
     if (activeTab === 'items' && selectedGame) {
@@ -668,6 +691,7 @@ export default function Admin() {
     { key: 'carousel', label: 'Carousel', icon: '📺' },
     { key: 'promos', label: 'Promos', icon: '🔥' },
     { key: 'messages', label: 'Pesan', icon: '✉️' },
+    { key: 'vouchers', label: 'Voucher', icon: '🎟️' },
   ];
 
   return (
@@ -1144,6 +1168,84 @@ export default function Admin() {
                   </div>
                 </section>
               )}
+
+              {activeTab === 'vouchers' && (
+                <section>
+                  <div className="admin-section-header">
+                    <p className="admin-section-desc">{vouchers.length} kode voucher</p>
+                    <button className="admin-btn admin-btn-primary"
+                      onClick={() => { setVoucherForm(emptyVoucherForm); setVoucherEdit(null); setModal('addVoucher'); }}>
+                      + Tambah Voucher
+                    </button>
+                  </div>
+                  <div className="admin-table-wrap">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Kode</th>
+                          <th>Reward</th>
+                          <th>Kuota</th>
+                          <th>Terpakai</th>
+                          <th>Tipe</th>
+                          <th>Berakhir</th>
+                          <th>Status</th>
+                          <th style={{ width: 160 }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {vouchers.length === 0 ? (
+                          <tr><td colSpan={8} className="admin-empty">Belum ada voucher</td></tr>
+                        ) : vouchers.map(v => (
+                          <tr key={v.id}>
+                            <td><code className="admin-code" style={{ fontSize: '0.9rem' }}>{v.code}</code></td>
+                            <td><span className="admin-price">{v.rewardValue.toLocaleString('id-ID')}</span></td>
+                            <td>{v.quota}</td>
+                            <td>{v.usedCount}</td>
+                            <td>{v.rewardType || '-'}</td>
+                            <td style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                              {v.validUntil ? new Date(v.validUntil).toLocaleDateString('id-ID') : '-'}
+                            </td>
+                            <td>
+                              {v.isActive
+                                ? <span className="admin-category-badge">Aktif</span>
+                                : <span style={{ color: '#64748b' }}>Nonaktif</span>}
+                            </td>
+                            <td>
+                              <div className="admin-actions">
+                                <button className="admin-btn-sm admin-btn-edit"
+                                  onClick={() => {
+                                    setVoucherForm({
+                                      code: v.code,
+                                      rewardValue: String(v.rewardValue),
+                                      quota: String(v.quota),
+                                      rewardType: v.rewardType || 'points',
+                                      isActive: String(v.isActive),
+                                      validUntil: v.validUntil ? v.validUntil.slice(0, 10) : ''
+                                    });
+                                    setVoucherEdit(v.id);
+                                    setModal('addVoucher');
+                                  }}>Edit</button>
+                                <button className="admin-btn-sm admin-btn-delete"
+                                  onClick={async () => {
+                                    if (!confirm(`Hapus voucher "${v.code}"?`)) return;
+                                    const token = getAuthToken();
+                                    const res = await fetch(`/api/admin/vouchers/${v.id}`, {
+                                      method: 'DELETE',
+                                      headers: { Authorization: `Bearer ${token}` }
+                                    });
+                                    const json = await res.json();
+                                    if (json.success) { showToast(json.message); loadVouchers(true); }
+                                    else showToast(json.message, 'error');
+                                  }}>Hapus</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              )}
             </>
           )}
         </div>
@@ -1499,6 +1601,65 @@ export default function Admin() {
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button type="button" className="admin-btn admin-btn-secondary" onClick={() => setModal(null)}>Batal</button>
               <button type="submit" className="admin-btn admin-btn-primary">{bannerEdit ? 'Update' : 'Simpan'}</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* === ADD/EDIT VOUCHER MODAL === */}
+      {modal === 'addVoucher' && (
+        <Modal title={voucherEdit ? 'Edit Voucher' : 'Tambah Voucher'} onClose={() => setModal(null)}>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            const token = getAuthToken();
+            const method = voucherEdit ? 'PUT' : 'POST';
+            const url = voucherEdit ? `/api/admin/vouchers/${voucherEdit}` : '/api/admin/vouchers';
+            try {
+              const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                  ...voucherForm,
+                  rewardValue: Number(voucherForm.rewardValue),
+                  quota: Number(voucherForm.quota)
+                })
+              });
+              const json = await res.json();
+              if (json.success) {
+                showToast(json.message);
+                setModal(null);
+                setVoucherForm(emptyVoucherForm);
+                setVoucherEdit(null);
+                loadVouchers(true);
+              } else showToast(json.message, 'error');
+            } catch { showToast('Gagal menyimpan voucher', 'error'); }
+          }}>
+            <Input label="Kode Voucher" value={voucherForm.code}
+              onChange={v => setVoucherForm(p => ({ ...p, code: v }))} required placeholder="RAST72026" />
+            <Input label="Nilai Reward (Poin)" type="number" value={voucherForm.rewardValue}
+              onChange={v => setVoucherForm(p => ({ ...p, rewardValue: v }))} required placeholder="10000" />
+            <Input label="Kuota" type="number" value={voucherForm.quota}
+              onChange={v => setVoucherForm(p => ({ ...p, quota: v }))} placeholder="100" />
+            <div className="admin-field">
+              <label>Tipe Reward</label>
+              <select value={voucherForm.rewardType}
+                onChange={e => setVoucherForm(p => ({ ...p, rewardType: e.target.value }))}>
+                <option value="points">Points</option>
+              </select>
+            </div>
+            <Input label="Berlaku Sampai (Kosongkan jika tidak ada batas)" type="date" value={voucherForm.validUntil}
+              onChange={v => setVoucherForm(p => ({ ...p, validUntil: v }))} />
+            <div className="admin-field">
+              <label>Status</label>
+              <select value={voucherForm.isActive}
+                onChange={e => setVoucherForm(p => ({ ...p, isActive: e.target.value }))}>
+                <option value="true">Aktif</option>
+                <option value="false">Nonaktif</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button type="button" className="admin-btn admin-btn-secondary" onClick={() => setModal(null)}>Batal</button>
+              <button type="submit" className="admin-btn admin-btn-primary">{voucherEdit ? 'Update' : 'Simpan'}</button>
             </div>
           </form>
         </Modal>

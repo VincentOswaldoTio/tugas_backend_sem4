@@ -899,4 +899,188 @@ router.delete('/admin/contact-messages/:id', async (req, res) => {
   }
 });
 
+// ==============================
+// VOUCHERS CRUD (admin)
+// ==============================
+
+/**
+ * @openapi
+ * /api/admin/vouchers:
+ *   get:
+ *     summary: List all vouchers (admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of vouchers
+ */
+router.get('/admin/vouchers', async (req, res) => {
+  try {
+    const vouchers = await req.prisma.vouchers.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    const data = vouchers.map(v => ({
+      id: v.id,
+      code: v.code,
+      rewardValue: v.rewardValue,
+      quota: v.quota,
+      usedCount: v.usedCount,
+      rewardType: v.rewardType,
+      isActive: v.isActive,
+      validUntil: v.validUntil,
+      createdAt: v.createdAt,
+      updatedAt: v.updatedAt
+    }));
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * @openapi
+ * /api/admin/vouchers:
+ *   post:
+ *     summary: Create a new voucher (admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [code, rewardValue]
+ *             properties:
+ *               code: { type: string }
+ *               rewardValue: { type: integer }
+ *               quota: { type: integer }
+ *               rewardType: { type: string }
+ *               isActive: { type: string }
+ *               validUntil: { type: string }
+ *     responses:
+ *       201:
+ *         description: Voucher created
+ *       400:
+ *         description: Validation error
+ */
+router.post('/admin/vouchers', async (req, res) => {
+  try {
+    const { code, rewardValue, quota, rewardType, isActive, validUntil } = req.body;
+    if (!code || rewardValue === undefined) {
+      return res.status(400).json({ success: false, message: "Kode dan nilai reward wajib diisi" });
+    }
+
+    const existing = await req.prisma.vouchers.findUnique({ where: { code: code.toUpperCase() } });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Kode voucher sudah ada" });
+    }
+
+    const voucher = await req.prisma.vouchers.create({
+      data: {
+        code: code.toUpperCase(),
+        rewardValue: parseInt(rewardValue),
+        quota: quota ? parseInt(quota) : 100,
+        rewardType: rewardType || 'points',
+        isActive: isActive !== 'false',
+        validUntil: validUntil ? new Date(validUntil) : null
+      }
+    });
+    res.status(201).json({ success: true, message: "Voucher berhasil ditambahkan", data: { id: voucher.id } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * @openapi
+ * /api/admin/vouchers/{id}:
+ *   put:
+ *     summary: Update a voucher (admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               code: { type: string }
+ *               rewardValue: { type: integer }
+ *               quota: { type: integer }
+ *               rewardType: { type: string }
+ *               isActive: { type: string }
+ *               validUntil: { type: string }
+ *     responses:
+ *       200:
+ *         description: Voucher updated
+ *       404:
+ *         description: Voucher not found
+ */
+router.put('/admin/vouchers/:id', async (req, res) => {
+  try {
+    const voucher = await req.prisma.vouchers.findUnique({ where: { id: req.params.id } });
+    if (!voucher) return res.status(404).json({ success: false, message: "Voucher tidak ditemukan" });
+
+    const updateData = {};
+    if (req.body.code !== undefined) {
+      const newCode = req.body.code.toUpperCase();
+      const conflict = await req.prisma.vouchers.findFirst({
+        where: { code: newCode, id: { not: req.params.id } }
+      });
+      if (conflict) return res.status(400).json({ success: false, message: "Kode voucher sudah ada" });
+      updateData.code = newCode;
+    }
+    if (req.body.rewardValue !== undefined) updateData.rewardValue = parseInt(req.body.rewardValue);
+    if (req.body.quota !== undefined) updateData.quota = parseInt(req.body.quota);
+    if (req.body.rewardType !== undefined) updateData.rewardType = req.body.rewardType;
+    if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive !== 'false';
+    if (req.body.validUntil !== undefined) updateData.validUntil = req.body.validUntil ? new Date(req.body.validUntil) : null;
+
+    await req.prisma.vouchers.update({
+      where: { id: req.params.id },
+      data: updateData
+    });
+    res.json({ success: true, message: "Voucher berhasil diupdate" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * @openapi
+ * /api/admin/vouchers/{id}:
+ *   delete:
+ *     summary: Delete a voucher (admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Voucher deleted
+ *       404:
+ *         description: Voucher not found
+ */
+router.delete('/admin/vouchers/:id', async (req, res) => {
+  try {
+    await req.prisma.vouchers.delete({ where: { id: req.params.id } });
+    res.json({ success: true, message: "Voucher berhasil dihapus" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 export default router;
