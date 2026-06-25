@@ -74,13 +74,24 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    background-color: rgb(26, 26, 46);
+    background:
+      radial-gradient(900px circle at 20% 30%, rgba(0, 242, 255, 0.15), transparent 50%),
+      radial-gradient(800px circle at 80% 70%, rgba(255, 0, 85, 0.12), transparent 50%),
+      radial-gradient(700px circle at 55% 15%, rgba(112, 0, 255, 0.10), transparent 50%),
+      linear-gradient(135deg, #0a0a1e 0%, #14142e 20%, #2a1850 40%, #1a1a3e 60%, #0d0d25 80%, #0a0a1e 100%);
+    background-size: 300% 300%;
+    animation: homeBgDrift 20s ease-in-out infinite alternate, fadeInUp 0.8s ease 0.1s both;
     margin-top: -10vh;
     border-radius: 50px 50px 0 0;
     padding: 1rem;
     color: #f0f0f0;
     box-shadow: 0 -20vh 100px rgba(0, 0, 0, 0.3);
-    animation: fadeInUp 0.8s ease 0.1s both;
+}
+
+@keyframes homeBgDrift {
+  0%   { background-position: 0% 20%; }
+  50%  { background-position: 100% 80%; }
+  100% { background-position: 0% 20%; }
 }
 
 /* ===== INPUT ID ====== */
