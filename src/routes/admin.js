@@ -820,6 +820,40 @@ router.post('/admin/promo-banners', imageUpload.fields([
   }
 });
 
+/**
+ * @openapi
+ * /api/admin/promo-banners/{id}:
+ *   put:
+ *     summary: Update promo banner (admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title: { type: string }
+ *               periodText: { type: string }
+ *               regionText: { type: string }
+ *               categoryText: { type: string }
+ *               subheading: { type: string }
+ *               isActive: { type: string }
+ *               removeImage: { type: string }
+ *               image: { type: string, format: binary }
+ *     responses:
+ *       200:
+ *         description: Banner promo successfully updated
+ *       404:
+ *         description: Banner promo not found
+ */
 router.put('/admin/promo-banners/:id', imageUpload.fields([
   { name: 'image', maxCount: 1 }
 ]), async (req, res) => {
@@ -852,6 +886,18 @@ router.put('/admin/promo-banners/:id', imageUpload.fields([
 // CONTACT MESSAGES CRUD (admin)
 // ==============================
 
+/**
+ * @openapi
+ * /api/admin/contact-messages:
+ *   get:
+ *     summary: List all contact/support messages (admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of contact messages
+ */
 router.get('/admin/contact-messages', async (req, res) => {
   try {
     const messages = await req.prisma.contact_messages.findMany({
@@ -871,6 +917,24 @@ router.get('/admin/contact-messages', async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/admin/contact-messages/{id}:
+ *   delete:
+ *     summary: Delete a contact/support message (admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Message successfully deleted
+ */
 router.delete('/admin/contact-messages/:id', async (req, res) => {
   try {
     await req.prisma.contact_messages.delete({

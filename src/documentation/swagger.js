@@ -146,7 +146,6 @@ const options = {
         }
       }
     },
-    security: [{ bearerAuth: [] }],
     tags: [
       { name: 'Auth', description: 'Authentication endpoints (register, login, password reset)' },
       { name: 'User', description: 'User profile, avatar, points, mileage' },

@@ -246,7 +246,22 @@ router.get('/carousel-slides', async (req, res) => {
 });
 
 /**
- * Serve carousel slide image
+ * @openapi
+ * /api/carousel-media/{id}:
+ *   get:
+ *     summary: Serve carousel slide image (public)
+ *     tags: [Public]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Binary image data
+ *       404:
+ *         description: Slide or image not found
  */
 router.get('/carousel-media/:id', async (req, res) => {
   try {
@@ -265,7 +280,22 @@ router.get('/carousel-media/:id', async (req, res) => {
 });
 
 /**
- * Serve page promo banner image
+ * @openapi
+ * /api/promo-media/banner/{id}:
+ *   get:
+ *     summary: Serve page promo banner image (public)
+ *     tags: [Public]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Binary image data
+ *       404:
+ *         description: Banner or image not found
  */
 router.get('/promo-media/banner/:id', async (req, res) => {
   try {
