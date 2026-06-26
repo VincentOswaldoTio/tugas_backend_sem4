@@ -19,6 +19,16 @@ const Header = () => {
   const drawerRef = useRef(null);
   const togglerRef = useRef(null);
 
+  // Lock body scroll when drawer is open on mobile
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerOpen]);
+
   // Close drawer when route changes
   useEffect(() => {
     setDrawerOpen(false); // eslint-disable-line react-hooks/set-state-in-effect

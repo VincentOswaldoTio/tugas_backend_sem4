@@ -397,7 +397,7 @@ header img {
 /* ─── Mobile Drawer (below lg breakpoint) ───── */
 
 @media (max-width: 991.98px) {
-    /* Drawer — off-screen right */
+    /* Drawer — off-screen right, fully hidden */
     .custom-nav-drawer {
         position: fixed;
         top: 0;
@@ -414,6 +414,9 @@ header img {
         align-items: stretch;
         overflow-y: auto;
         display: flex;
+        flex-grow: 0 !important;
+        visibility: hidden;
+        pointer-events: none;
     }
 
     .custom-nav-drawer-inner {
@@ -425,6 +428,8 @@ header img {
 
     .custom-nav-drawer--open {
         transform: translateX(0);
+        visibility: visible;
+        pointer-events: auto;
     }
 
     /* Stack drawer content vertically */
