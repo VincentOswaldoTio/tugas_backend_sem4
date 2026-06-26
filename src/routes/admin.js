@@ -3,6 +3,7 @@ import { authenticate, authorizeAdmin } from '../middleware/auth.js';
 import { imageUpload } from '../middleware/upload.js';
 
 const router = express.Router();
+const BASE = process.env.BASE_URL || '';
 
 // All admin routes require authentication + admin role
 router.use(authenticate, authorizeAdmin);
@@ -64,8 +65,8 @@ router.get('/admin/games', async (req, res) => {
       hasLogo: !!g.logo,
       hasBg: !!g.bg,
       hasIcon: !!g.itemIcon,
-      logoUrl: g.logo ? `/api/game-media/${g.id}/logo` : null,
-      bgUrl: g.bg ? `/api/game-media/${g.id}/bg` : null,
+      logoUrl: g.logo ? `${BASE}/api/game-media/${g.id}/logo` : null,
+      bgUrl: g.bg ? `${BASE}/api/game-media/${g.id}/bg` : null,
       bgPosition: g.bgPosition,
       hasZone: g.hasZone,
       itemCount: g.items?.length || 0,
@@ -113,9 +114,9 @@ router.get('/admin/games/:id', async (req, res) => {
       hasLogo: !!game.logo,
       hasBg: !!game.bg,
       hasIcon: !!game.itemIcon,
-      logoUrl: game.logo ? `/api/game-media/${game.id}/logo` : null,
-      bgUrl: game.bg ? `/api/game-media/${game.id}/bg` : null,
-      itemIconUrl: game.itemIcon ? `/api/game-media/${game.id}/icon` : null
+      logoUrl: game.logo ? `${BASE}/api/game-media/${game.id}/logo` : null,
+      bgUrl: game.bg ? `${BASE}/api/game-media/${game.id}/bg` : null,
+      itemIconUrl: game.itemIcon ? `${BASE}/api/game-media/${game.id}/icon` : null
     };
 
     res.json({ success: true, data });
@@ -614,7 +615,7 @@ router.get('/admin/carousel-slides', async (req, res) => {
       sortOrder: s.sortOrder,
       isActive: s.isActive,
       hasImage: !!s.image,
-      imageUrl: s.image ? `/api/carousel-media/${s.id}` : null,
+      imageUrl: s.image ? `${BASE}/api/carousel-media/${s.id}` : null,
       createdAt: s.createdAt
     }));
     res.json({ success: true, data });
@@ -786,7 +787,7 @@ router.get('/admin/promo-banners', async (req, res) => {
       subheading: b.subheading,
       isActive: b.isActive,
       hasImage: !!b.image,
-      imageUrl: b.image ? `/api/promo-media/banner/${b.id}` : null,
+      imageUrl: b.image ? `${BASE}/api/promo-media/banner/${b.id}` : null,
       createdAt: b.createdAt
     }));
     res.json({ success: true, data });
