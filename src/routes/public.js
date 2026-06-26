@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/auth.js';
 import { sendImageResponse } from '../utils/imageUtils.js';
 
 const router = express.Router();
+const BASE = process.env.BASE_URL || '';
 
 /**
  * @openapi
@@ -37,6 +38,7 @@ router.get('/games', async (req, res) => {
     const games = await req.prisma.games.findMany({
       select: { id: true, name: true, slug: true, badge: true, categoryId: true, hasZone: true, bgPosition: true, updatedAt: true, logo: true, bg: true, category: { select: { id: true, name: true, slug: true } } }
     });
+    const BASE = process.env.BASE_URL || '';
     const ts = Date.now();
     const data = games.map(g => ({
       id: g.id,
@@ -47,8 +49,8 @@ router.get('/games', async (req, res) => {
       hasZone: g.hasZone,
       bgPosition: g.bgPosition,
       updatedAt: g.updatedAt,
-      logo: g.logo ? `/api/game-media/${g.id}/logo?v=${g.updatedAt?.getTime() || ts}` : null,
-      bg: g.bg ? `/api/game-media/${g.id}/bg?v=${g.updatedAt?.getTime() || ts}` : null
+      logo: g.logo ? `${BASE}/api/game-media/${g.id}/logo?v=${g.updatedAt?.getTime() || ts}` : null,
+      bg: g.bg ? `${BASE}/api/game-media/${g.id}/bg?v=${g.updatedAt?.getTime() || ts}` : null
     }));
     res.json({ success: true, data });
   } catch (err) {
@@ -88,9 +90,9 @@ router.get('/games/:slug', async (req, res) => {
       slug: game.slug,
       badge: game.badge,
       category: game.category,
-      logoUrl: game.logo ? `/api/game-media/${game.id}/logo?v=${game.updatedAt?.getTime() || Date.now()}` : null,
-      itemIconUrl: game.itemIcon ? `/api/game-media/${game.id}/icon?v=${game.updatedAt?.getTime() || Date.now()}` : null,
-      bgUrl: game.bg ? `/api/game-media/${game.id}/bg?v=${game.updatedAt?.getTime() || Date.now()}` : null,
+      logoUrl: game.logo ? `${BASE}/api/game-media/${game.id}/logo?v=${game.updatedAt?.getTime() || Date.now()}` : null,
+      itemIconUrl: game.itemIcon ? `${BASE}/api/game-media/${game.id}/icon?v=${game.updatedAt?.getTime() || Date.now()}` : null,
+      bgUrl: game.bg ? `${BASE}/api/game-media/${game.id}/bg?v=${game.updatedAt?.getTime() || Date.now()}` : null,
       bgPosition: game.bgPosition,
       hasZone: game.hasZone,
       userIdLabel: game.userIdLabel,
@@ -237,7 +239,7 @@ router.get('/carousel-slides', async (req, res) => {
       cta: s.cta,
       link: s.link,
       sortOrder: s.sortOrder,
-      imageUrl: s.image ? `/api/carousel-media/${s.id}?v=${ts}` : null
+      imageUrl: s.image ? `${BASE}/api/carousel-media/${s.id}?v=${ts}` : null
     }));
     res.json({ success: true, data });
   } catch (err) {
@@ -341,7 +343,7 @@ router.get('/promo-page', async (req, res) => {
       categoryText: banner.categoryText,
       subheading: banner.subheading,
       isActive: banner.isActive,
-      imageUrl: banner.image ? `/api/promo-media/banner/${banner.id}?v=${ts}` : null
+      imageUrl: banner.image ? `${BASE}/api/promo-media/banner/${banner.id}?v=${ts}` : null
     };
     res.json({ success: true, data });
   } catch (err) {

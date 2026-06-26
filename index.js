@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { prisma } from './lib/prisma';
 import { UserService, TransactionService, PointConfigService } from './src/services/index.js';
 import { requestLogger } from './src/middleware/logger.js';
@@ -15,6 +16,9 @@ import adminRoutes from './src/routes/admin.js';
 import { swaggerUiMiddleware, swaggerUiSetup } from './src/documentation/swagger.js';
 
 const app = express();
+
+// CORS — izinkan akses dari frontend (Vercel atau domain manapun)
+app.use(cors());
 
 // Global request logger
 app.use(requestLogger);
