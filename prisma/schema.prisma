@@ -8,6 +8,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==========================================
+// 1. USERS
+// ==========================================
 model users {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   avatar    Bytes?
@@ -99,7 +102,7 @@ model payment_methods {
 }
 
 // ==========================================
-// 4. TRANSACTIONS
+// 5. TRANSACTIONS
 // Menyimpan riwayat invoice (Struktur Snapshot)
 // ==========================================
 model transactions {
@@ -133,7 +136,7 @@ model transactions {
 }
 
 // ==========================================
-// 5. VOUCHERS
+// 6. VOUCHERS
 // Untuk menggantikan hardcode "SUKSES77" di Voucher.jsx
 // ==========================================
 model vouchers {
@@ -151,7 +154,7 @@ model vouchers {
 }
 
 // ==========================================
-// 6. VOUCHER REDEMPTIONS
+// 7. VOUCHER REDEMPTIONS
 // Tracks per-user voucher redemption (one-time use per user)
 // ==========================================
 model voucher_redemptions {
@@ -165,7 +168,7 @@ model voucher_redemptions {
 }
 
 // ==========================================
-// 7. CAROUSEL SLIDES
+// 8. CAROUSEL SLIDES
 // For dynamic hero carousel content management
 // ==========================================
 model carousel_slides {
@@ -182,7 +185,7 @@ model carousel_slides {
 }
 
 // ==========================================
-// 6. POINT CONFIGS
+// 9. POINT CONFIGS
 // Tier configuration for dynamic point rewards
 // ==========================================
 model point_configs {
@@ -194,7 +197,7 @@ model point_configs {
 }
 
 // ==========================================
-// 8. PROMOS
+// 10. PROMOS
 // For dynamic campaign list on Promo Page
 // ==========================================
 model promos {
@@ -210,7 +213,7 @@ model promos {
 }
 
 // ==========================================
-// 9. PROMO BANNERS / CONFIGS
+// 11. PROMO BANNERS / CONFIGS
 // For page-level header and config on Promo Page
 // ==========================================
 model promo_banners {
@@ -226,7 +229,7 @@ model promo_banners {
 }
 
 // ==========================================
-// 10. CONTACT MESSAGES
+// 12. CONTACT MESSAGES
 // For user feedback/complaints on Contact Page
 // ==========================================
 model contact_messages {
