@@ -143,7 +143,7 @@ export default function PromoManager({ promos, banners, showToast, onRefreshProm
     });
     setBannerImage(null);
     setBannerEdit(b.id);
-    setBannerHasImage(b.hasImage);
+    setBannerHasImage(!!b.imageUrl);
     setRemoveBannerImage(false);
     setModal('banner');
   };
@@ -242,7 +242,7 @@ export default function PromoManager({ promos, banners, showToast, onRefreshProm
                     <td>{b.regionText}</td>
                     <td>{b.categoryText}</td>
                     <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.subheading}</td>
-                    <td>{b.hasImage ? <span className="admin-badge-badge" data-badge="Hot">Ada</span> : '-'}</td>
+                    <td><span style={{ color: '#64748b' }}>-</span></td>
                     <td>{b.isActive ? <span className="admin-category-badge">Aktif</span> : <span style={{ color: '#64748b' }}>Nonaktif</span>}</td>
                     <td>
                       <div className="admin-actions">
@@ -317,7 +317,8 @@ export default function PromoManager({ promos, banners, showToast, onRefreshProm
               <div className="admin-file-wrap">
                 {bannerHasImage && !bannerImage && !removeBannerImage && (
                   <img src={`/api/promo-media/banner/${bannerEdit}?t=${refreshKey}`} alt="" className="admin-file-preview"
-                    style={{ maxHeight: 120 }} />
+                    style={{ maxHeight: 120 }}
+                    onError={e => { e.target.style.display = 'none'; }} />
                 )}
                 {bannerImage && (
                   <img src={URL.createObjectURL(bannerImage)} alt="" className="admin-file-preview"

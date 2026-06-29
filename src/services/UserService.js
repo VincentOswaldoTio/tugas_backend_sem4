@@ -84,11 +84,11 @@ class UserService extends BaseService {
 
   async getAllUsers() {
     const users = await this.prisma.users.findMany({
-      select: { id: true, email: true, username: true, joinDate: true, birthday: true, gender: true, avatar: true, createdAt: true, isAdmin: true }
+      select: { id: true, email: true, username: true, joinDate: true, birthday: true, gender: true, createdAt: true, isAdmin: true }
     });
     return users.map(user => ({
       ...user,
-      avatar: user.avatar ? `/api/avatar/${user.id}` : null
+      avatar: `/api/avatar/${user.id}`
     }));
   }
 

@@ -36,7 +36,7 @@ router.get('/test', (req, res) => res.json({ ok: true }));
 router.get('/games', async (req, res) => {
   try {
     const games = await req.prisma.games.findMany({
-      select: { id: true, name: true, slug: true, badge: true, categoryId: true, hasZone: true, bgPosition: true, updatedAt: true, logo: true, bg: true, category: { select: { id: true, name: true, slug: true } } }
+      select: { id: true, name: true, slug: true, badge: true, categoryId: true, hasZone: true, bgPosition: true, updatedAt: true, category: { select: { id: true, name: true, slug: true } } }
     });
     const BASE = process.env.BASE_URL || '';
     const ts = Date.now();
@@ -49,8 +49,8 @@ router.get('/games', async (req, res) => {
       hasZone: g.hasZone,
       bgPosition: g.bgPosition,
       updatedAt: g.updatedAt,
-      logo: g.logo ? `${BASE}/api/game-media/${g.id}/logo?v=${g.updatedAt?.getTime() || ts}` : null,
-      bg: g.bg ? `${BASE}/api/game-media/${g.id}/bg?v=${g.updatedAt?.getTime() || ts}` : null
+      logo: `${BASE}/api/game-media/${g.id}/logo?v=${g.updatedAt?.getTime() || ts}`,
+      bg: `${BASE}/api/game-media/${g.id}/bg?v=${g.updatedAt?.getTime() || ts}`
     }));
     res.json({ success: true, data });
   } catch (err) {
@@ -78,7 +78,17 @@ router.get('/games', async (req, res) => {
 router.get('/games/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const game = await req.prisma.games.findUnique({ where: { slug }, include: { category: true } });
+    const game = await req.prisma.games.findUnique({
+      where: { slug },
+      select: {
+        id: true, name: true, slug: true, badge: true, bgPosition: true,
+        hasZone: true, userIdLabel: true, userIdPlaceholder: true,
+        zoneIdLabel: true, zoneIdPlaceholder: true, zoneIdHint: true,
+        zoneIdMaxLength: true, zoneOptions: true, items: true,
+        createdAt: true, updatedAt: true,
+        category: true
+      }
+    });
 
     if (!game) {
       return res.status(404).json({ success: false, message: "Game tidak ditemukan" });
@@ -90,9 +100,9 @@ router.get('/games/:slug', async (req, res) => {
       slug: game.slug,
       badge: game.badge,
       category: game.category,
-      logoUrl: game.logo ? `${BASE}/api/game-media/${game.id}/logo?v=${game.updatedAt?.getTime() || Date.now()}` : null,
-      itemIconUrl: game.itemIcon ? `${BASE}/api/game-media/${game.id}/icon?v=${game.updatedAt?.getTime() || Date.now()}` : null,
-      bgUrl: game.bg ? `${BASE}/api/game-media/${game.id}/bg?v=${game.updatedAt?.getTime() || Date.now()}` : null,
+      logoUrl: `${BASE}/api/game-media/${game.id}/logo?v=${game.updatedAt?.getTime() || Date.now()}`,
+      itemIconUrl: `${BASE}/api/game-media/${game.id}/icon?v=${game.updatedAt?.getTime() || Date.now()}`,
+      bgUrl: `${BASE}/api/game-media/${game.id}/bg?v=${game.updatedAt?.getTime() || Date.now()}`,
       bgPosition: game.bgPosition,
       hasZone: game.hasZone,
       userIdLabel: game.userIdLabel,
@@ -230,7 +240,8 @@ router.get('/carousel-slides', async (req, res) => {
   try {
     const slides = await req.prisma.carousel_slides.findMany({
       where: { isActive: true },
-      orderBy: { sortOrder: 'asc' }
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, title: true, subtitle: true, cta: true, link: true, sortOrder: true }
     });
     const ts = Date.now();
     const data = slides.map(s => ({
@@ -240,7 +251,7 @@ router.get('/carousel-slides', async (req, res) => {
       cta: s.cta,
       link: s.link,
       sortOrder: s.sortOrder,
-      imageUrl: s.image ? `${BASE}/api/carousel-media/${s.id}?v=${ts}` : null
+      imageUrl: `${BASE}/api/carousel-media/${s.id}?v=${ts}`
     }));
     res.json({ success: true, data });
   } catch (err) {

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 
-export default function FileInput({ label, accept = 'image/png,image/jpeg,image/jpg,image/gif,image/webp', onChange, onRemove, currentUrl, hasImage }) {
+export default function FileInput({ label, accept = 'image/png,image/jpeg,image/jpg,image/gif,image/webp', onChange, onRemove, currentUrl }) {
   const [preview, setPreview] = useState(currentUrl || null);
   const fileRef = useRef(null);
 
@@ -26,7 +26,7 @@ export default function FileInput({ label, accept = 'image/png,image/jpeg,image/
         {preview && <img src={preview} alt="" className="admin-file-preview" onError={e => { e.target.style.display = 'none'; }} />}
         <div className="admin-file-inputs">
           <input ref={fileRef} type="file" accept={accept} onChange={handleChange} />
-          {(preview || hasImage) && <button type="button" className="admin-btn-sm admin-btn-delete" onClick={handleRemove}>Hapus</button>}
+          {preview && <button type="button" className="admin-btn-sm admin-btn-delete" onClick={handleRemove}>Hapus</button>}
         </div>
       </div>
     </div>
