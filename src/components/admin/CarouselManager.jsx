@@ -66,7 +66,7 @@ export default function CarouselManager({ slides, showToast, onRefresh }) {
                 <td><span className="admin-game-name">{s.title}</span></td>
                 <td>{s.cta}</td>
                 <td><code className="admin-code">{s.link}</code></td>
-                <td>{s.hasImage ? <span className="admin-badge-badge" data-badge="Hot">Ada</span> : '-'}</td>
+                <td><span style={{ color: '#64748b' }}>-</span></td>
                 <td>{s.isActive ? <span className="admin-category-badge">Aktif</span> : <span style={{ color: '#64748b' }}>Nonaktif</span>}</td>
                 <td>
                   <div className="admin-actions">
@@ -75,7 +75,7 @@ export default function CarouselManager({ slides, showToast, onRefresh }) {
                         setForm({ title: s.title, subtitle: s.subtitle || '', cta: s.cta, link: s.link, sortOrder: String(s.sortOrder), isActive: String(s.isActive) });
                         setImage(null);
                         setEditId(s.id);
-                        setHasImage(s.hasImage);
+                        setHasImage(!!s.imageUrl);
                         setModal('slide');
                       }}>Edit</button>
                     <button className="admin-btn-sm admin-btn-delete"
@@ -119,7 +119,8 @@ export default function CarouselManager({ slides, showToast, onRefresh }) {
               <div className="admin-file-wrap">
                 {hasImage && !image && (
                   <img src={`/api/carousel-media/${editId}`} alt="" className="admin-file-preview"
-                    style={{ maxHeight: 120 }} />
+                    style={{ maxHeight: 120 }}
+                    onError={e => { e.target.style.display = 'none'; }} />
                 )}
                 {image && (
                   <img src={URL.createObjectURL(image)} alt="" className="admin-file-preview"

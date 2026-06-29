@@ -53,7 +53,11 @@ router.get('/admin/games', async (req, res) => {
   try {
     const games = await req.prisma.games.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { category: true }
+      select: {
+        id: true, name: true, slug: true, badge: true, categoryId: true,
+        bgPosition: true, hasZone: true, items: true, createdAt: true,
+        category: { select: { id: true, name: true } }
+      }
     });
     const data = games.map(g => ({
       id: g.id,
@@ -62,11 +66,8 @@ router.get('/admin/games', async (req, res) => {
       badge: g.badge,
       category: g.category ? { id: g.category.id, name: g.category.name } : null,
       categoryId: g.categoryId,
-      hasLogo: !!g.logo,
-      hasBg: !!g.bg,
-      hasIcon: !!g.itemIcon,
-      logoUrl: g.logo ? `${BASE}/api/game-media/${g.id}/logo` : null,
-      bgUrl: g.bg ? `${BASE}/api/game-media/${g.id}/bg` : null,
+      logoUrl: `${BASE}/api/game-media/${g.id}/logo`,
+      bgUrl: `${BASE}/api/game-media/${g.id}/bg`,
       bgPosition: g.bgPosition,
       hasZone: g.hasZone,
       itemCount: g.items?.length || 0,
@@ -101,22 +102,24 @@ router.get('/admin/games/:id', async (req, res) => {
   try {
     const game = await req.prisma.games.findUnique({
       where: { id: req.params.id },
-      include: { category: true }
+      select: {
+        id: true, name: true, slug: true, badge: true, categoryId: true,
+        bgPosition: true, hasZone: true,
+        userIdLabel: true, userIdPlaceholder: true,
+        zoneIdLabel: true, zoneIdPlaceholder: true, zoneIdHint: true,
+        zoneIdMaxLength: true, zoneOptions: true, items: true,
+        createdAt: true, updatedAt: true,
+        category: true
+      }
     });
     if (!game) return res.status(404).json({ success: false, message: "Game tidak ditemukan" });
 
     const data = {
       ...game,
-      logo: undefined,
-      bg: undefined,
-      itemIcon: undefined,
       category: game.category ? { id: game.category.id, name: game.category.name } : null,
-      hasLogo: !!game.logo,
-      hasBg: !!game.bg,
-      hasIcon: !!game.itemIcon,
-      logoUrl: game.logo ? `${BASE}/api/game-media/${game.id}/logo` : null,
-      bgUrl: game.bg ? `${BASE}/api/game-media/${game.id}/bg` : null,
-      itemIconUrl: game.itemIcon ? `${BASE}/api/game-media/${game.id}/icon` : null
+      logoUrl: `${BASE}/api/game-media/${game.id}/logo`,
+      bgUrl: `${BASE}/api/game-media/${game.id}/bg`,
+      itemIconUrl: `${BASE}/api/game-media/${game.id}/icon`
     };
 
     res.json({ success: true, data });
@@ -607,7 +610,8 @@ router.delete('/admin/categories/:id', async (req, res) => {
 router.get('/admin/carousel-slides', async (req, res) => {
   try {
     const slides = await req.prisma.carousel_slides.findMany({
-      orderBy: { sortOrder: 'asc' }
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, title: true, subtitle: true, cta: true, link: true, sortOrder: true, isActive: true, createdAt: true }
     });
     const data = slides.map(s => ({
       id: s.id,
@@ -617,8 +621,7 @@ router.get('/admin/carousel-slides', async (req, res) => {
       link: s.link,
       sortOrder: s.sortOrder,
       isActive: s.isActive,
-      hasImage: !!s.image,
-      imageUrl: s.image ? `${BASE}/api/carousel-media/${s.id}` : null,
+      imageUrl: `${BASE}/api/carousel-media/${s.id}`,
       createdAt: s.createdAt
     }));
     res.json({ success: true, data });
@@ -779,7 +782,8 @@ router.delete('/admin/promos/:id', async (req, res) => {
 router.get('/admin/promo-banners', async (req, res) => {
   try {
     const banners = await req.prisma.promo_banners.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, title: true, periodText: true, regionText: true, categoryText: true, subheading: true, isActive: true, createdAt: true }
     });
     const data = banners.map(b => ({
       id: b.id,
@@ -789,8 +793,7 @@ router.get('/admin/promo-banners', async (req, res) => {
       categoryText: b.categoryText,
       subheading: b.subheading,
       isActive: b.isActive,
-      hasImage: !!b.image,
-      imageUrl: b.image ? `${BASE}/api/promo-media/banner/${b.id}` : null,
+      imageUrl: `${BASE}/api/promo-media/banner/${b.id}`,
       createdAt: b.createdAt
     }));
     res.json({ success: true, data });

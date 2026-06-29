@@ -16,7 +16,6 @@ export default function GameManager({ games, categories, showToast, onRefresh, r
   const [gameFiles, setGameFiles] = useState({ logo: null, bg: null, itemIcon: null });
   const [removeImages, setRemoveImages] = useState({ logo: false, bg: false, itemIcon: false });
   const [editTarget, setEditTarget] = useState(null);
-  const [hasImages, setHasImages] = useState({ logo: false, bg: false, itemIcon: false });
   const [itemForm, setItemForm] = useState(emptyItemForm);
 
   const formatPrice = (p) => new Intl.NumberFormat('id-ID').format(p || 0);
@@ -26,7 +25,6 @@ export default function GameManager({ games, categories, showToast, onRefresh, r
     setGameForm(emptyGameForm);
     setGameFiles({ logo: null, bg: null, itemIcon: null });
     setRemoveImages({ logo: false, bg: false, itemIcon: false });
-    setHasImages({ logo: false, bg: false, itemIcon: false });
     setEditTarget(null);
   };
 
@@ -123,7 +121,6 @@ export default function GameManager({ games, categories, showToast, onRefresh, r
           badge: g.badge || '', categoryId: g.categoryId || '',
           zoneOptions: Array.isArray(g.zoneOptions) ? g.zoneOptions.join(', ') : ''
         });
-        setHasImages({ logo: g.hasLogo || false, bg: g.hasBg || false, icon: g.hasIcon || false });
         setGameFiles({ logo: null, bg: null, itemIcon: null });
         setRemoveImages({ logo: false, bg: false, itemIcon: false });
         setEditTarget(id);
@@ -227,10 +224,8 @@ export default function GameManager({ games, categories, showToast, onRefresh, r
                     <td>{g.badge ? <span className="admin-badge-badge" data-badge={g.badge}>{g.badge}</span> : '-'}</td>
                     <td><span className="admin-badge">{g.itemCount}</span></td>
                     <td>
-                      {g.hasLogo
-                        ? <img src={`/api/game-media/${g.id}/logo?t=${refreshKey}`} alt="" className="admin-thumb"
-                            onError={e => { e.target.style.display = 'none'; }} />
-                        : '-'}
+                      <img src={`/api/game-media/${g.id}/logo?t=${refreshKey}`} alt="" className="admin-thumb"
+                        onError={e => { e.target.style.display = 'none'; }} />
                     </td>
                     <td>
                       <div className="admin-actions">
@@ -370,18 +365,18 @@ export default function GameManager({ games, categories, showToast, onRefresh, r
             <Input label="Slug" value={gameForm.slug}
               onChange={v => setGameForm(p => ({ ...p, slug: v }))} required />
 
-            <FileInput key={`logo-${refreshKey}`} label="Logo Game" hasImage={hasImages.logo}
-              currentUrl={hasImages.logo ? `/api/game-media/${editTarget}/logo?t=${refreshKey}` : null}
+            <FileInput key={`logo-${refreshKey}`} label="Logo Game"
+              currentUrl={`/api/game-media/${editTarget}/logo?t=${refreshKey}`}
               onChange={f => setGameFiles(p => ({ ...p, logo: f }))}
               onRemove={() => setRemoveImages(p => ({ ...p, logo: true }))} />
 
-            <FileInput key={`icon-${refreshKey}`} label="Ikon Item" hasImage={hasImages.icon}
-              currentUrl={hasImages.icon ? `/api/game-media/${editTarget}/icon?t=${refreshKey}` : null}
+            <FileInput key={`icon-${refreshKey}`} label="Ikon Item"
+              currentUrl={`/api/game-media/${editTarget}/icon?t=${refreshKey}`}
               onChange={f => setGameFiles(p => ({ ...p, itemIcon: f }))}
               onRemove={() => setRemoveImages(p => ({ ...p, itemIcon: true }))} />
 
-            <FileInput key={`bg-${refreshKey}`} label="Background" hasImage={hasImages.bg}
-              currentUrl={hasImages.bg ? `/api/game-media/${editTarget}/bg?t=${refreshKey}` : null}
+            <FileInput key={`bg-${refreshKey}`} label="Background"
+              currentUrl={`/api/game-media/${editTarget}/bg?t=${refreshKey}`}
               onChange={f => setGameFiles(p => ({ ...p, bg: f }))}
               onRemove={() => setRemoveImages(p => ({ ...p, bg: true }))} />
 
